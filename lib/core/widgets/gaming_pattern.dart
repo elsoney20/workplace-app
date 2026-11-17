@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'motion.dart';
@@ -10,13 +12,17 @@ import 'motion.dart';
 ///
 /// Cheap by design: the icons are drawn once into a seamless tile that is
 /// cached as a texture; every frame only *moves* that texture (no
-/// redrawing). It moves ~24 times a second and stops while the app window
-/// is in the background.
+/// redrawing). It moves while someone is using the app, rests after
+/// [idleAfter] without mouse / keyboard activity (so an untouched app uses
+/// no CPU), and stops while the window is in the background.
 class GamingPattern extends StatefulWidget {
   const GamingPattern({super.key});
 
   /// Size of the repeating tile, in logical pixels.
   static const double tile = _PatternPainter.cell * _PatternPainter.cells;
+
+  /// The drift pauses after this long without any input.
+  static const Duration idleAfter = Duration(seconds: 12);
 
   @override
   State<GamingPattern> createState() => _GamingPatternState();
@@ -28,17 +34,45 @@ class _GamingPatternState extends State<GamingPattern>
   final ValueNotifier<Offset> _shift = ValueNotifier(Offset.zero);
   Duration _last = Duration.zero;
 
+  /// Seconds of drift so far (kept across pauses, so it never jumps).
+  double _clock = 0;
+  DateTime _lastInput = DateTime.now();
+  bool _foreground = true;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (FadeSlideIn.enabled) _ticker.start();
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_onPointer);
+    HardwareKeyboard.instance.addHandler(_onKey);
+    _wake();
+  }
+
+  void _onPointer(PointerEvent e) => _wake();
+
+  bool _onKey(KeyEvent e) {
+    _wake();
+    return false;
+  }
+
+  void _wake() {
+    _lastInput = DateTime.now();
+    if (FadeSlideIn.enabled && _foreground && !_ticker.isActive) {
+      _last = Duration.zero;
+      _ticker.start();
+    }
   }
 
   void _tick(Duration elapsed) {
-    if (elapsed - _last < const Duration(milliseconds: 41)) return;
+    if (DateTime.now().difference(_lastInput) > GamingPattern.idleAfter) {
+      _ticker.stop();
+      return;
+    }
+    final step = elapsed - _last;
+    if (step < const Duration(milliseconds: 41)) return;
     _last = elapsed;
-    final t = elapsed.inMicroseconds / 1e6;
+    _clock += step.inMicroseconds / 1e6;
+    final t = _clock;
     const tile = GamingPattern.tile;
     // Pixel-snapped so the cached texture never needs re-filtering.
     _shift.value = Offset(
@@ -49,19 +83,19 @@ class _GamingPatternState extends State<GamingPattern>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!FadeSlideIn.enabled) return;
-    final active = state == AppLifecycleState.resumed;
-    if (active && !_ticker.isActive) {
-      _ticker.start();
-    } else if (!active && _ticker.isActive) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) {
+      _wake();
+    } else if (_ticker.isActive) {
       _ticker.stop();
-      _last = Duration.zero;
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);
+    HardwareKeyboard.instance.removeHandler(_onKey);
     _ticker.dispose();
     _shift.dispose();
     super.dispose();
