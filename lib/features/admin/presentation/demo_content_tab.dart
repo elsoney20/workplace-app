@@ -91,6 +91,33 @@ class _DemoContentTabState extends ConsumerState<DemoContentTab> {
     }, l10n.demoLoaded);
   }
 
+  Future<void> _showCredits() async {
+    final l10n = AppLocalizations.of(context);
+    var text = '';
+    try {
+      text = await rootBundle.loadString('assets/demo/CREDITS.txt');
+    } catch (_) {}
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.demoPhotoCredits),
+        content: SizedBox(
+          width: 560,
+          child: SingleChildScrollView(
+            child: SelectableText('${l10n.demoPhotoCreditsBody}\n\n$text'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.ok),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _remove() async {
     final l10n = AppLocalizations.of(context);
     final client = ref.read(supabaseClientProvider);
@@ -134,6 +161,11 @@ class _DemoContentTabState extends ConsumerState<DemoContentTab> {
                       onPressed: _busy ? null : _load,
                       icon: const Icon(Icons.download),
                       label: Text(l10n.demoLoad),
+                    ),
+                    TextButton.icon(
+                      onPressed: _showCredits,
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: Text(l10n.demoPhotoCredits),
                     ),
                     OutlinedButton.icon(
                       key: const Key('demoRemove'),

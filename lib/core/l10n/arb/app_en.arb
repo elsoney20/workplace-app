@@ -558,5 +558,7 @@
   "hideComments": "Hide comments",
   "playVideo": "Play video",
   "fullScreen": "Full screen",
-  "exitFullScreen": "Exit full screen"
+  "exitFullScreen": "Exit full screen",
+  "demoPhotoCredits": "Photo credits",
+  "demoPhotoCreditsBody": "Demo photos are from Wikimedia Commons under free licenses (CC BY, CC BY-SA, public domain)."
 }

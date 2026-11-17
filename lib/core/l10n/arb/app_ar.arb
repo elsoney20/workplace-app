@@ -313,5 +313,7 @@
   "hideComments": "إخفاء التعليقات",
   "playVideo": "تشغيل الفيديو",
   "fullScreen": "ملء الشاشة",
-  "exitFullScreen": "خروج من ملء الشاشة"
+  "exitFullScreen": "خروج من ملء الشاشة",
+  "demoPhotoCredits": "حقوق الصور",
+  "demoPhotoCreditsBody": "صور الديمو من Wikimedia Commons برخص مجانية (CC BY و CC BY-SA وملكية عامة)."
 }
