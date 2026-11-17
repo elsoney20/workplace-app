@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -43,6 +45,8 @@ class PostCard extends ConsumerStatefulWidget {
 enum _MenuAction { edit, delete, pin, unpin, lock, unlock, seenBy, report }
 
 class _PostCardState extends ConsumerState<PostCard> {
+  bool _showComments = false;
+
   FeedPost get post => widget.post;
   bool get _mine => post.author.id == widget.me.id;
 
@@ -323,21 +327,37 @@ class _PostCardState extends ConsumerState<PostCard> {
               ),
             ],
           ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 320),
+            curve: kSmooth,
+            alignment: Alignment.topCenter,
+            child: _showComments
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Divider(height: 1),
+                      CommentsSection(
+                        key: Key('comments-${post.id}'),
+                        post: post,
+                        me: widget.me,
+                        canModerate: widget.scope.canModerate,
+                        onHashtag: widget.onHashtag,
+                        inline: true,
+                        onChanged: _commentsChanged,
+                      ),
+                    ],
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
         ],
       ),
     );
   }
 
-  Future<void> _openComments() async {
-    await showCommentsDialog(
-      context,
-      post: post,
-      me: widget.me,
-      canModerate: widget.scope.canModerate,
-      onHashtag: widget.onHashtag,
-    );
-    await ref
-        .read(feedControllerProvider(widget.scope.groupId).notifier)
-        .refresh();
-  }
+  /// Comments open right under the post (like Facebook).
+  void _openComments() => setState(() => _showComments = !_showComments);
+
+  void _commentsChanged() => unawaited(
+    ref.read(feedControllerProvider(widget.scope.groupId).notifier).refresh(),
+  );
 }

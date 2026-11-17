@@ -41,7 +41,11 @@ class FakeFeedRepository extends FeedRepository {
   ];
 
   @override
-  Future<List<PostComment>> fetchComments(String postId) async => const [];
+  Future<List<PostComment>> fetchComments(String postId) async =>
+      comments[postId] ?? const [];
+
+  /// Comments per post id.
+  final Map<String, List<PostComment>> comments = {};
 
   @override
   Future<List<Person>> searchPeople(String query) async => const [

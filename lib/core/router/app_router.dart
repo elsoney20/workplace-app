@@ -19,6 +19,7 @@ import '../../features/moderation/presentation/reports_screen.dart';
 import '../../features/notifications/application/desktop_notifier.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/search/presentation/search_screen.dart';
+import '../../features/shell/app_shell.dart';
 
 /// App routes. Logged-out users only ever see the login screens.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -46,11 +47,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
-        path: HomeScreen.routePath,
-        name: HomeScreen.routeName,
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
         path: LoginScreen.routePath,
         name: LoginScreen.routeName,
         builder: (context, state) => const LoginScreen(),
@@ -60,68 +56,80 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: SecondFactorScreen.routeName,
         builder: (context, state) => const SecondFactorScreen(),
       ),
-      GoRoute(
-        path: AdminScreen.routePath,
-        name: AdminScreen.routeName,
-        builder: (context, state) => const AdminScreen(),
-      ),
-      GoRoute(
-        path: ChatsScreen.routePath,
-        name: ChatsScreen.routeName,
-        builder: (context, state) => const ChatsScreen(),
-      ),
-      GoRoute(
-        path: ChatScreen.routePath,
-        name: ChatScreen.routeName,
-        builder: (context, state) =>
-            ChatScreen(conversationId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: GroupsScreen.routePath,
-        name: GroupsScreen.routeName,
-        builder: (context, state) => const GroupsScreen(),
-      ),
-      GoRoute(
-        path: GroupScreen.routePath,
-        name: GroupScreen.routeName,
-        builder: (context, state) =>
-            GroupScreen(groupId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: PostScreen.routePath,
-        name: PostScreen.routeName,
-        builder: (context, state) =>
-            PostScreen(postId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: NotificationsScreen.routePath,
-        name: NotificationsScreen.routeName,
-        builder: (context, state) => const NotificationsScreen(),
-      ),
-      GoRoute(
-        path: SearchScreen.routePath,
-        name: SearchScreen.routeName,
-        builder: (context, state) => const SearchScreen(),
-      ),
-      GoRoute(
-        path: DirectoryScreen.routePath,
-        name: DirectoryScreen.routeName,
-        builder: (context, state) => const DirectoryScreen(),
-      ),
-      GoRoute(
-        path: MyProfileScreen.routePath,
-        name: MyProfileScreen.routeName,
-        builder: (context, state) => const MyProfileScreen(),
-      ),
-      GoRoute(
-        path: ReportsScreen.routePath,
-        name: ReportsScreen.routeName,
-        builder: (context, state) => const ReportsScreen(),
-      ),
-      GoRoute(
-        path: SecurityScreen.routePath,
-        name: SecurityScreen.routeName,
-        builder: (context, state) => const SecurityScreen(),
+      // Every signed-in page sits inside the shell (rail + background).
+      ShellRoute(
+        builder: (context, state, child) =>
+            AppShell(location: state.uri.path, child: child),
+        routes: [
+          GoRoute(
+            path: HomeScreen.routePath,
+            name: HomeScreen.routeName,
+            builder: (context, state) => const HomeScreen(),
+          ),
+          GoRoute(
+            path: AdminScreen.routePath,
+            name: AdminScreen.routeName,
+            builder: (context, state) => const AdminScreen(),
+          ),
+          GoRoute(
+            path: ChatsScreen.routePath,
+            name: ChatsScreen.routeName,
+            builder: (context, state) => const ChatsScreen(),
+          ),
+          GoRoute(
+            path: ChatScreen.routePath,
+            name: ChatScreen.routeName,
+            builder: (context, state) =>
+                ChatScreen(conversationId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: GroupsScreen.routePath,
+            name: GroupsScreen.routeName,
+            builder: (context, state) => const GroupsScreen(),
+          ),
+          GoRoute(
+            path: GroupScreen.routePath,
+            name: GroupScreen.routeName,
+            builder: (context, state) =>
+                GroupScreen(groupId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: PostScreen.routePath,
+            name: PostScreen.routeName,
+            builder: (context, state) =>
+                PostScreen(postId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: NotificationsScreen.routePath,
+            name: NotificationsScreen.routeName,
+            builder: (context, state) => const NotificationsScreen(),
+          ),
+          GoRoute(
+            path: SearchScreen.routePath,
+            name: SearchScreen.routeName,
+            builder: (context, state) => const SearchScreen(),
+          ),
+          GoRoute(
+            path: DirectoryScreen.routePath,
+            name: DirectoryScreen.routeName,
+            builder: (context, state) => const DirectoryScreen(),
+          ),
+          GoRoute(
+            path: MyProfileScreen.routePath,
+            name: MyProfileScreen.routeName,
+            builder: (context, state) => const MyProfileScreen(),
+          ),
+          GoRoute(
+            path: ReportsScreen.routePath,
+            name: ReportsScreen.routeName,
+            builder: (context, state) => const ReportsScreen(),
+          ),
+          GoRoute(
+            path: SecurityScreen.routePath,
+            name: SecurityScreen.routeName,
+            builder: (context, state) => const SecurityScreen(),
+          ),
+        ],
       ),
     ],
   );

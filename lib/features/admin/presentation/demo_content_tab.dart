@@ -5,7 +5,9 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../../feed/application/feed_controller.dart';
+import '../../chat/application/chat_providers.dart';
 import '../../feed/data/feed_repository.dart';
+import '../application/demo_script.dart';
 
 /// Admin-only: fills the app with sample posts (with photos and a video),
 /// colleagues, a group and chats, so the app can be tried before launch.
@@ -43,34 +45,49 @@ class _DemoContentTabState extends ConsumerState<DemoContentTab> {
     }
   }
 
+  /// Bundled demo file, or null if it isn't in this build.
+  Future<PendingUpload?> _tryAsset(String name) async {
+    try {
+      return await _asset(name);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _load() async {
     final l10n = AppLocalizations.of(context);
     final feed = ref.read(feedRepositoryProvider);
     final client = ref.read(supabaseClientProvider);
     await _run(() async {
-      // Posts with media are created as me (Storage uploads can't be
-      // done from SQL). The database seed then adds colleagues' reactions
-      // and comments to my newest three posts.
-      await feed.createPost(
-        authorId: widget.myProfileId,
-        body: l10n.demoPost3,
-        uploads: [
-          await _asset('new_arrivals.mp4'),
-          await _asset('new_arrivals.jpg'),
-        ],
-      );
-      await feed.createPost(
-        authorId: widget.myProfileId,
-        body: l10n.demoPost2,
-        uploads: [await _asset('g2e_cup.jpg')],
-      );
-      await feed.createPost(
-        authorId: widget.myProfileId,
-        body: l10n.demoPost1,
-        uploads: [await _asset('black_friday.jpg')],
-        announcement: true,
-      );
+      // Start clean, so loading twice simply refreshes the demo.
+      await client.rpc<void>('remove_demo_content');
       await client.rpc<void>('seed_demo_content');
+      // Photo / video posts: made as me (only a post's author may upload
+      // its files), then handed to a demo colleague with its comments.
+      for (final post in demoPosts) {
+        final uploads = <PendingUpload>[];
+        for (final f in post.files) {
+          final file = await _tryAsset(f);
+          if (file != null) uploads.add(file);
+        }
+        if (uploads.isEmpty) continue;
+        final id = await feed.createPost(
+          authorId: widget.myProfileId,
+          body: post.body,
+          uploads: uploads,
+          announcement: post.announcement,
+        );
+        await client.rpc<void>(
+          'adopt_demo_post',
+          params: {
+            'p_post': id,
+            'p_author': post.author,
+            'p_minutes_ago': post.minutesAgo,
+            'p_comments': [for (final c in post.comments) c.toJson()],
+          },
+        );
+      }
+      ref.invalidate(conversationsProvider);
     }, l10n.demoLoaded);
   }
 

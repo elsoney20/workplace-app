@@ -552,5 +552,11 @@
   "demoRemoved": "Demo content removed. Your own demo posts stay; delete them from the feed if you like.",
   "demoPost1": "Black Friday offers start Thursday at midnight in every branch 🔥 All teams please check the shifts in the operations group. #black_friday #offers",
   "demoPost2": "Registration is open for the G2E Cup 🏆 the branches FIFA tournament. Send your team name in the comments! #g2e_cup",
-  "demoPost3": "New arrivals landed in all branches 🎮 watch the video 👇 #new_arrivals"
+  "demoPost3": "New arrivals landed in all branches 🎮 watch the video 👇 #new_arrivals",
+  "commentsNewest": "Newest first",
+  "commentsOldest": "Oldest first",
+  "hideComments": "Hide comments",
+  "playVideo": "Play video",
+  "fullScreen": "Full screen",
+  "exitFullScreen": "Exit full screen"
 }

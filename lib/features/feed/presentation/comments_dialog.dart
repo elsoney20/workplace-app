@@ -29,7 +29,7 @@ Future<void> showCommentsDialog(
 }) {
   return showDialog<void>(
     context: context,
-    builder: (_) => _CommentsDialog(
+    builder: (_) => CommentsSection(
       post: post,
       me: me,
       canModerate: canModerate,
@@ -38,24 +38,37 @@ Future<void> showCommentsDialog(
   );
 }
 
-class _CommentsDialog extends ConsumerStatefulWidget {
-  const _CommentsDialog({
+/// How top-level comments are ordered.
+enum CommentOrder { newest, oldest }
+
+/// Comments of a post. [inline] shows them right under the post (like
+/// Facebook); otherwise they are shown in a dialog.
+class CommentsSection extends ConsumerStatefulWidget {
+  const CommentsSection({
+    super.key,
     required this.post,
     required this.me,
     this.canModerate = false,
     this.onHashtag,
+    this.inline = false,
+    this.onChanged,
   });
 
   final FeedPost post;
   final MyProfile me;
   final bool canModerate;
   final void Function(String tag)? onHashtag;
+  final bool inline;
+
+  /// Called after a comment is added, edited or deleted.
+  final VoidCallback? onChanged;
 
   @override
-  ConsumerState<_CommentsDialog> createState() => _CommentsDialogState();
+  ConsumerState<CommentsSection> createState() => _CommentsDialogState();
 }
 
-class _CommentsDialogState extends ConsumerState<_CommentsDialog> {
+class _CommentsDialogState extends ConsumerState<CommentsSection> {
+  CommentOrder _order = CommentOrder.newest;
   final MentionController _text = MentionController();
   PostComment? _replyTo;
   PostComment? _editing;
@@ -70,7 +83,10 @@ class _CommentsDialogState extends ConsumerState<_CommentsDialog> {
     super.dispose();
   }
 
-  void _reload() => ref.invalidate(_commentsProvider(widget.post.id));
+  void _reload() {
+    ref.invalidate(_commentsProvider(widget.post.id));
+    widget.onChanged?.call();
+  }
 
   Future<void> _send() async {
     if (_text.isEmpty || _sending) return;
@@ -163,6 +179,171 @@ class _CommentsDialogState extends ConsumerState<_CommentsDialog> {
     final comments = ref.watch(_commentsProvider(widget.post.id));
     final locked = widget.post.commentsLocked && !_canModerate;
 
+    final theme = Theme.of(context);
+    final header = Row(
+      children: [
+        Expanded(
+          child: Text(
+            l10n.commentsTitle,
+            style: widget.inline
+                ? theme.textTheme.titleSmall
+                : theme.textTheme.titleLarge,
+          ),
+        ),
+        PopupMenuButton<CommentOrder>(
+          key: const Key('commentOrder'),
+          initialValue: _order,
+          onSelected: (o) => setState(() => _order = o),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: CommentOrder.newest,
+              child: Text(l10n.commentsNewest),
+            ),
+            PopupMenuItem(
+              value: CommentOrder.oldest,
+              child: Text(l10n.commentsOldest),
+            ),
+          ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.sort_rounded, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  _order == CommentOrder.newest
+                      ? l10n.commentsNewest
+                      : l10n.commentsOldest,
+                  style: theme.textTheme.labelLarge,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (!widget.inline)
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.pop(context),
+          ),
+      ],
+    );
+
+    List<Widget> tiles(List<PostComment> value) {
+      final top = value.where((c) => c.parentId == null).toList()
+        ..sort(
+          (a, b) => _order == CommentOrder.newest
+              ? b.createdAt.compareTo(a.createdAt)
+              : a.createdAt.compareTo(b.createdAt),
+        );
+      return [
+        for (final c in top) ...[
+          _CommentTile(comment: c, state: this),
+          for (final r in value.where((r) => r.parentId == c.id))
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 48),
+              child: _CommentTile(comment: r, state: this),
+            ),
+        ],
+      ];
+    }
+
+    final Widget list = switch (comments) {
+      AsyncData(:final value) when value.isEmpty => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(child: Text(l10n.noCommentsYet)),
+      ),
+      AsyncData(:final value) =>
+        widget.inline
+            ? Column(children: tiles(value))
+            : ListView(shrinkWrap: true, children: tiles(value)),
+      AsyncError() => Center(
+        child: TextButton.icon(
+          onPressed: _reload,
+          icon: const Icon(Icons.refresh),
+          label: Text(l10n.retry),
+        ),
+      ),
+      _ => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    };
+
+    final composer = <Widget>[
+      if (locked)
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              const Icon(Icons.lock_outline),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l10n.commentsLocked)),
+            ],
+          ),
+        )
+      else ...[
+        if (_replyTo != null || _editing != null)
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _editing != null
+                      ? l10n.edit
+                      : l10n.writeReply(_replyTo!.author.fullName),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+              IconButton(
+                iconSize: 18,
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(() {
+                  _replyTo = null;
+                  if (_editing != null) _text.clear();
+                  _editing = null;
+                }),
+              ),
+            ],
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: MentionTextField(
+                fieldKey: const Key('commentTextField'),
+                controller: _text,
+                hintText: _replyTo == null
+                    ? l10n.writeComment
+                    : l10n.writeReply(_replyTo!.author.fullName),
+                maxLines: 5,
+                autofocus: true,
+                onSubmit: _send,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              key: const Key('sendCommentButton'),
+              tooltip: l10n.send,
+              onPressed: _sending ? null : _send,
+              icon: const Icon(Icons.send),
+            ),
+          ],
+        ),
+        if (_error != null)
+          Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+      ],
+    ];
+
+    if (widget.inline) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [header, ...composer, const SizedBox(height: 4), list],
+        ),
+      );
+    }
+
     return Dialog(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640, maxHeight: 720),
@@ -172,124 +353,11 @@ class _CommentsDialogState extends ConsumerState<_CommentsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.commentsTitle,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
+              header,
               const Divider(),
-              Flexible(
-                child: switch (comments) {
-                  AsyncData(:final value) when value.isEmpty => Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Center(child: Text(l10n.noCommentsYet)),
-                  ),
-                  AsyncData(:final value) => ListView(
-                    shrinkWrap: true,
-                    children: [
-                      for (final c in value.where(
-                        (c) => c.parentId == null,
-                      )) ...[
-                        _CommentTile(comment: c, state: this),
-                        for (final r in value.where((r) => r.parentId == c.id))
-                          Padding(
-                            padding: const EdgeInsetsDirectional.only(
-                              start: 48,
-                            ),
-                            child: _CommentTile(comment: r, state: this),
-                          ),
-                      ],
-                    ],
-                  ),
-                  AsyncError() => Center(
-                    child: TextButton.icon(
-                      onPressed: _reload,
-                      icon: const Icon(Icons.refresh),
-                      label: Text(l10n.retry),
-                    ),
-                  ),
-                  _ => const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                },
-              ),
+              Flexible(child: list),
               const Divider(),
-              if (locked)
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.lock_outline),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(l10n.commentsLocked)),
-                    ],
-                  ),
-                )
-              else ...[
-                if (_replyTo != null || _editing != null)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _editing != null
-                              ? l10n.edit
-                              : l10n.writeReply(_replyTo!.author.fullName),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                      IconButton(
-                        iconSize: 18,
-                        icon: const Icon(Icons.close),
-                        onPressed: () => setState(() {
-                          _replyTo = null;
-                          if (_editing != null) _text.clear();
-                          _editing = null;
-                        }),
-                      ),
-                    ],
-                  ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: MentionTextField(
-                        fieldKey: const Key('commentTextField'),
-                        controller: _text,
-                        hintText: _replyTo == null
-                            ? l10n.writeComment
-                            : l10n.writeReply(_replyTo!.author.fullName),
-                        maxLines: 5,
-                        autofocus: true,
-                        onSubmit: _send,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton.filled(
-                      key: const Key('sendCommentButton'),
-                      tooltip: l10n.send,
-                      onPressed: _sending ? null : _send,
-                      icon: const Icon(Icons.send),
-                    ),
-                  ],
-                ),
-                if (_error != null)
-                  Text(
-                    _error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-              ],
+              ...composer,
             ],
           ),
         ),

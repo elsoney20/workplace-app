@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'gaming_pattern.dart';
+
 /// Smooth "Apple-like" easing used everywhere.
 const Curve kSmooth = Cubic(0.16, 1, 0.3, 1);
 
@@ -171,9 +173,12 @@ class _PressableState extends State<Pressable> {
 
 /// The soft green / gold glow behind the app, like games2egypt.com.
 class BrandBackdrop extends StatelessWidget {
-  const BrandBackdrop({super.key, required this.child});
+  const BrandBackdrop({super.key, required this.child, this.pattern = false});
 
   final Widget child;
+
+  /// Adds the drifting gaming-icons pattern behind [child].
+  final bool pattern;
 
   @override
   Widget build(BuildContext context) {
@@ -223,6 +228,8 @@ class BrandBackdrop extends StatelessWidget {
               ),
             ),
           ),
+          if (pattern)
+            const Positioned.fill(child: IgnorePointer(child: GamingPattern())),
           Positioned.fill(child: RepaintBoundary(child: child)),
         ],
       ),

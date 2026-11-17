@@ -11,6 +11,7 @@ import 'package:workplace_app/features/auth/domain/my_profile.dart';
 import 'package:workplace_app/features/feed/data/feed_repository.dart';
 import 'package:workplace_app/features/feed/domain/feed_post.dart';
 import 'package:workplace_app/features/feed/domain/person.dart';
+import 'package:workplace_app/features/feed/domain/post_comment.dart';
 import 'package:workplace_app/features/feed/presentation/animated_emoji.dart';
 
 import 'fake_feed_repository.dart';
@@ -185,6 +186,48 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.reactions.single, ('p2', '😂'));
+  });
+
+  testWidgets('comments open under the post, newest first, and can be sorted', (
+    tester,
+  ) async {
+    final repo = await _pump(tester);
+    repo.comments['p1'] = [
+      PostComment(
+        id: 'c1',
+        postId: 'p1',
+        author: _sara,
+        body: 'First comment',
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+      ),
+      PostComment(
+        id: 'c2',
+        postId: 'p1',
+        author: _sara,
+        body: 'Second comment',
+        createdAt: DateTime.now().subtract(const Duration(minutes: 3)),
+      ),
+    ];
+
+    await tester.tap(find.byKey(const Key('commentButton-p1')));
+    await tester.pumpAndSettle();
+
+    // Inline under the post, not in a dialog.
+    expect(find.byType(Dialog), findsNothing);
+    expect(find.byKey(const Key('comments-p1')), findsOneWidget);
+    double y(String text) => tester.getTopLeft(find.text(text)).dy;
+    expect(y('Second comment') < y('First comment'), isTrue);
+
+    await tester.tap(find.byKey(const Key('commentOrder')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Oldest first').last);
+    await tester.pumpAndSettle();
+    expect(y('First comment') < y('Second comment'), isTrue);
+
+    // The same button hides them again.
+    await tester.tap(find.byKey(const Key('commentButton-p1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('comments-p1')), findsNothing);
   });
 
   testWidgets('feed works in Arabic (right to left)', (tester) async {

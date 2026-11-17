@@ -2,31 +2,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/config/brand_config.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
-import '../../../core/widgets/brand_logo.dart';
-import '../../../core/widgets/language_menu_button.dart';
 import '../../../core/widgets/motion.dart';
 import '../../admin/presentation/admin_errors.dart';
-import '../../admin/presentation/admin_screen.dart';
 import '../../auth/application/auth_providers.dart';
-import '../../auth/data/auth_repository.dart';
 import '../../auth/domain/my_profile.dart';
-import '../../auth/presentation/security_screen.dart';
 import '../../chat/application/chat_providers.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../chat/presentation/chats_screen.dart';
-import '../../directory/presentation/directory_screen.dart';
 import '../../feed/domain/feed_scope.dart';
 import '../../feed/presentation/feed_view.dart';
-import '../../groups/presentation/groups_screen.dart';
-import '../../moderation/presentation/reports_screen.dart';
-import '../../notifications/application/notifications_providers.dart';
-import '../../notifications/presentation/notifications_screen.dart';
 import '../../search/presentation/search_screen.dart';
 
-/// Home after login (design #4 "G2E Classic"): an icon rail on the side,
-/// the company feed in the middle, and a chat panel on wide screens.
+/// Home after login (design #4 "G2E Classic"): the company feed in the
+/// middle and a chat panel on wide screens. The rail lives in AppShell.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -49,283 +38,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = AppLocalizations.of(context);
     final profile = ref.watch(myProfileProvider);
 
-    // Deactivated (or removed) while signed in: explain, then sign out.
-    ref.listen(myProfileProvider, (previous, next) async {
-      if (next case AsyncData(value: null)) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.accountNotActiveTitle),
-            content: Text(l10n.errorNotActive),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l10n.ok),
-              ),
-            ],
-          ),
-        );
-        await ref.read(authRepositoryProvider).signOut();
-      }
-    });
-
     return Scaffold(
-      body: BrandBackdrop(
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, box) {
-              final wide = box.maxWidth >= HomeScreen.chatPanelMinWidth;
-              final p = profile.value;
-              return Row(
-                children: [
-                  _Rail(profile: p, panelOpen: wide),
-                  Expanded(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
-                        child: switch (profile) {
-                          AsyncData(value: final p?) => FeedView(
-                            me: p,
-                            scope: FeedScope.company(isAdmin: p.isAdmin),
-                            header: _HomeHeader(profile: p),
-                          ),
-                          AsyncError() => Center(
-                            child: TextButton.icon(
-                              onPressed: () =>
-                                  ref.invalidate(myProfileProvider),
-                              icon: const Icon(Icons.refresh),
-                              label: Text(
-                                '${l10n.errorNetwork}\n${l10n.retry}',
-                              ),
-                            ),
-                          ),
-                          _ => const Center(child: CircularProgressIndicator()),
-                        },
-                      ),
-                    ),
-                  ),
-                  if (wide && p != null)
-                    _ChatPanel(
-                      openChat: _openChat,
-                      onOpen: (id) => setState(() => _openChat = id),
-                      onClose: () => setState(() => _openChat = null),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The slim icon rail. Items keep the old keys so tests and habits still work.
-class _Rail extends ConsumerWidget {
-  const _Rail({required this.profile, required this.panelOpen});
-
-  final MyProfile? profile;
-
-  /// When the chat panel is visible the chats button is still shown,
-  /// it just opens the full chats page.
-  final bool panelOpen;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final p = profile;
-
-    return Container(
-      width: 76,
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow.withValues(alpha: .72),
-        border: BorderDirectional(
-          end: BorderSide(color: scheme.outlineVariant),
-        ),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          Tooltip(
-            message: BrandConfig.localizedAppName(
-              Localizations.localeOf(context),
-            ),
-            child: const BrandLogo(size: 40),
-          ),
-          const SizedBox(height: 18),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _RailButton(
-                    icon: Icons.home_rounded,
-                    label: l10n.homeTitle,
-                    selected: true,
-                    onTap: () {},
-                  ),
-                  _RailButton(
-                    key: const Key('openGroups'),
-                    icon: Icons.groups_rounded,
-                    label: l10n.groupsTitle,
-                    onTap: () => context.push(GroupsScreen.routePath),
-                  ),
-                  const _ChatsButton(),
-                  const _NotificationsButton(),
-                  _RailButton(
-                    key: const Key('openSearch'),
-                    icon: Icons.search_rounded,
-                    label: l10n.searchTitle,
-                    onTap: () => context.push(SearchScreen.routePath),
-                  ),
-                  _RailButton(
-                    key: const Key('openDirectory'),
-                    icon: Icons.contacts_rounded,
-                    label: l10n.directoryTitle,
-                    onTap: () => context.push(DirectoryScreen.routePath),
-                  ),
-                  if (p != null && (p.isAdmin || p.role == 'manager'))
-                    _RailButton(
-                      key: const Key('openReports'),
-                      icon: Icons.flag_rounded,
-                      label: l10n.reportsTitle,
-                      onTap: () => context.push(ReportsScreen.routePath),
-                    ),
-                  if (p != null && p.isAdmin)
-                    _RailButton(
-                      key: const Key('openAdminPanel'),
-                      icon: Icons.admin_panel_settings_rounded,
-                      label: l10n.adminPanel,
-                      onTap: () => context.push(AdminScreen.routePath),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          const LanguageMenuButton(),
-          _RailButton(
-            icon: Icons.shield_outlined,
-            label: l10n.securityTitle,
-            onTap: () => context.push(SecurityScreen.routePath),
-          ),
-          _RailButton(
-            key: const Key('openMyProfile'),
-            icon: Icons.person_rounded,
-            label: l10n.myProfile,
-            onTap: () => context.push(MyProfileScreen.routePath),
-          ),
-          _RailButton(
-            key: const Key('signOutButton'),
-            icon: Icons.logout_rounded,
-            label: l10n.signOut,
-            onTap: () => ref.read(authRepositoryProvider).signOut(),
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
-    );
-  }
-}
-
-class _RailButton extends StatelessWidget {
-  const _RailButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.selected = false,
-    this.badge = 0,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool selected;
-  final int badge;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Tooltip(
-        message: label,
-        preferBelow: false,
-        child: Pressable(
-          child: Material(
-            color: selected
-                ? scheme.primary.withValues(alpha: .16)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: onTap,
-              child: SizedBox(
-                width: 48,
-                height: 48,
+      body: LayoutBuilder(
+        builder: (context, box) {
+          final wide = box.maxWidth >= HomeScreen.chatPanelMinWidth;
+          final p = profile.value;
+          return Row(
+            children: [
+              Expanded(
                 child: Center(
-                  child: PopOnChange(
-                    trigger: badge,
-                    child: Badge(
-                      isLabelVisible: badge > 0,
-                      label: Text(badge > 99 ? '99+' : '$badge'),
-                      child: Icon(
-                        icon,
-                        color: selected
-                            ? scheme.primary
-                            : scheme.onSurfaceVariant,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: switch (profile) {
+                      AsyncData(value: final p?) => FeedView(
+                        me: p,
+                        scope: FeedScope.company(isAdmin: p.isAdmin),
+                        header: _HomeHeader(profile: p),
                       ),
-                    ),
+                      AsyncError() => Center(
+                        child: TextButton.icon(
+                          onPressed: () => ref.invalidate(myProfileProvider),
+                          icon: const Icon(Icons.refresh),
+                          label: Text('${l10n.errorNetwork}\n${l10n.retry}'),
+                        ),
+                      ),
+                      _ => const Center(child: CircularProgressIndicator()),
+                    },
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
+              if (wide && p != null)
+                _ChatPanel(
+                  openChat: _openChat,
+                  onOpen: (id) => setState(() => _openChat = id),
+                  onClose: () => setState(() => _openChat = null),
+                ),
+            ],
+          );
+        },
       ),
-    );
-  }
-}
-
-/// Chats with an unread badge. Watching it also keeps the "online" status
-/// and live chat updates running while the app is open.
-class _ChatsButton extends ConsumerWidget {
-  const _ChatsButton();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    ref.watch(onlinePeopleProvider);
-    final unread = ref.watch(unreadChatsProvider);
-    return _RailButton(
-      key: const Key('openChats'),
-      icon: Icons.chat_bubble_rounded,
-      label: l10n.chatsTitle,
-      badge: unread,
-      onTap: () => context.push(ChatsScreen.routePath),
-    );
-  }
-}
-
-/// Bell with the unread count. Watching the tick keeps the live
-/// notifications channel (and Windows toasts) running while the app is open.
-class _NotificationsButton extends ConsumerWidget {
-  const _NotificationsButton();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    ref.watch(notificationsTickProvider);
-    final unread = ref.watch(unreadNotificationsProvider).value ?? 0;
-    return _RailButton(
-      key: const Key('openNotifications'),
-      icon: Icons.notifications_rounded,
-      label: l10n.notificationsTitle,
-      badge: unread,
-      onTap: () async {
-        await context.push(NotificationsScreen.routePath);
-        ref.invalidate(unreadNotificationsProvider);
-      },
     );
   }
 }

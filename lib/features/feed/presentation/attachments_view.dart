@@ -5,9 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/storage/signed_urls.dart';
 import '../domain/post_attachment.dart';
+import 'inline_video.dart';
 
-/// Photos as a grid; videos and other files as tiles that open in the
-/// computer's own player/viewer.
+/// Photos as a grid, videos playing inside the post, other files as tiles
+/// that open in the computer's own viewer.
 class AttachmentsView extends StatelessWidget {
   const AttachmentsView({
     super.key,
@@ -22,17 +23,50 @@ class AttachmentsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final images = attachments
-        .where((a) => a.kind == AttachmentKind.image)
+    String stem(String name) {
+      final dot = name.lastIndexOf('.');
+      return (dot > 0 ? name.substring(0, dot) : name).toLowerCase();
+    }
+
+    final videos = attachments
+        .where((a) => a.kind == AttachmentKind.video)
         .toList();
-    final others = attachments
-        .where((a) => a.kind != AttachmentKind.image)
+    // A photo with the same name as a video ("trailer.jpg" next to
+    // "trailer.mp4") is used as that video's cover picture.
+    final posters = <String, PostAttachment>{};
+    for (final v in videos) {
+      for (final a in attachments) {
+        if (a.kind == AttachmentKind.image &&
+            stem(a.displayName) == stem(v.displayName)) {
+          posters[v.id] = a;
+        }
+      }
+    }
+    final usedAsPoster = posters.values.map((a) => a.id).toSet();
+    final images = attachments
+        .where(
+          (a) => a.kind == AttachmentKind.image && !usedAsPoster.contains(a.id),
+        )
+        .toList();
+    final files = attachments
+        .where(
+          (a) =>
+              a.kind != AttachmentKind.image && a.kind != AttachmentKind.video,
+        )
         .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        for (final v in videos)
+          InlineVideo(
+            key: ValueKey('video-${v.id}'),
+            video: v,
+            bucket: bucket,
+            poster: posters[v.id],
+            fallback: _FileTile(file: v, bucket: bucket),
+          ),
         if (images.isNotEmpty) _ImageGrid(images: images, bucket: bucket),
-        for (final file in others) _FileTile(file: file, bucket: bucket),
+        for (final file in files) _FileTile(file: file, bucket: bucket),
       ],
     );
   }
