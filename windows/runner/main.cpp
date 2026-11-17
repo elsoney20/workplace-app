@@ -19,6 +19,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   flutter::DartProject project(L"data");
 
+  // Use the classic Skia renderer instead of Impeller (OpenGL ES). On the
+  // owner's NVIDIA PC Impeller crashed inside the graphics driver and froze
+  // the window when it was maximized on a 4K screen.
+  project.set_impeller_switch(flutter::ImpellerSwitch::Disabled);
+
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
 
