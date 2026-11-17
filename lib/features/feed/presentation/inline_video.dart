@@ -38,15 +38,15 @@ class InlineVideo extends ConsumerStatefulWidget {
 class _InlineVideoState extends ConsumerState<InlineVideo> {
   VideoPlayerController? _c;
   bool _failed = false;
-  bool _started = false;
+  bool _loading = false;
+  double? _ratio;
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_load());
-  }
-
-  Future<void> _load() async {
+  // The player is only created when someone presses play. A ready video
+  // texture keeps the window redrawing (~100 fps on Windows) even while
+  // paused, so the feed stays a plain picture until then.
+  Future<void> _load({bool fullScreen = false}) async {
+    if (_loading || _c != null) return;
+    setState(() => _loading = true);
     try {
       final url = await ref.read(signedUrlCacheProvider).urlFor((
         bucket: widget.bucket,
@@ -63,7 +63,17 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
         return;
       }
       c.addListener(_onTick);
-      setState(() => _c = c);
+      setState(() {
+        _c = c;
+        _loading = false;
+        _ratio = c.value.aspectRatio;
+      });
+      if (fullScreen) {
+        unawaited(c.play());
+        await _fullScreen();
+      } else {
+        await c.play();
+      }
     } catch (_) {
       if (mounted) setState(() => _failed = true);
     }
@@ -72,11 +82,15 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
   void _onTick() {
     if (!mounted) return;
     final c = _c;
-    if (c != null && c.value.isCompleted && c.value.isPlaying == false) {
+    if (c == null) return;
+    if (c.value.isCompleted && !c.value.isPlaying) {
       // Back to the start, like Facebook.
       unawaited(c.seekTo(Duration.zero));
     }
-    setState(() {});
+    // Only rebuild when the shape changes; the controls listen themselves.
+    if (c.value.aspectRatio != _ratio) {
+      setState(() => _ratio = c.value.aspectRatio);
+    }
   }
 
   @override
@@ -91,15 +105,19 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
 
   void _toggle() {
     final c = _c;
-    if (c == null) return;
-    setState(() => _started = true);
+    if (c == null) {
+      unawaited(_load());
+      return;
+    }
     unawaited(c.value.isPlaying ? c.pause() : c.play());
   }
 
   Future<void> _fullScreen() async {
     final c = _c;
-    if (c == null) return;
-    setState(() => _started = true);
+    if (c == null) {
+      unawaited(_load(fullScreen: true));
+      return;
+    }
     await showGeneralDialog<void>(
       context: context,
       barrierColor: Colors.black,
@@ -120,16 +138,15 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
 
   @override
   Widget build(BuildContext context) {
-    final c = _c;
-    final ratio = c != null && c.value.isInitialized && c.value.aspectRatio > 0
-        ? c.value.aspectRatio.clamp(.6, 2.2).toDouble()
-        : 16 / 9;
-
     if (_failed) {
       return widget.fallback;
     }
-
+    final l10n = AppLocalizations.of(context);
+    final c = _c;
+    final r = _ratio;
+    final ratio = r != null && r > 0 ? r.clamp(.6, 2.2).toDouble() : 16 / 9;
     final poster = widget.poster;
+
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: AspectRatio(
@@ -145,17 +162,29 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
                     aspectRatio: c.value.aspectRatio,
                     child: VideoPlayer(c),
                   ),
-                ),
-              if (!_started && poster != null)
-                _Poster(poster: poster, bucket: widget.bucket),
-              if (c == null)
-                const Center(
-                  child: SizedBox.square(
-                    dimension: 28,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
-                  ),
                 )
-              else
+              else ...[
+                if (poster != null)
+                  _Poster(poster: poster, bucket: widget.bucket),
+                GestureDetector(
+                  key: const Key('videoPlay'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _toggle,
+                  onDoubleTap: _fullScreen,
+                  child: Center(
+                    child: _loading
+                        ? const SizedBox.square(
+                            dimension: 28,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          )
+                        : Tooltip(
+                            message: l10n.playVideo,
+                            child: const _PlayBadge(),
+                          ),
+                  ),
+                ),
+              ],
+              if (c != null)
                 _Controls(
                   controller: c,
                   onToggle: _toggle,
@@ -165,6 +194,28 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PlayBadge extends StatelessWidget {
+  const _PlayBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withValues(alpha: .55),
+        border: Border.all(color: Colors.white70, width: 2),
+      ),
+      child: const Icon(
+        Icons.play_arrow_rounded,
+        color: Colors.white,
+        size: 46,
       ),
     );
   }
@@ -265,20 +316,7 @@ class _ControlsState extends State<_Controls> {
                   duration: const Duration(milliseconds: 200),
                   child: Tooltip(
                     message: l10n.playVideo,
-                    child: Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black.withValues(alpha: .55),
-                        border: Border.all(color: Colors.white70, width: 2),
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 46,
-                      ),
-                    ),
+                    child: const _PlayBadge(),
                   ),
                 ),
               ),
