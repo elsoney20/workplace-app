@@ -368,5 +368,54 @@
   "noManager": "No manager",
   "errorLastOwner": "A group needs an owner. Make someone else owner first.",
   "added": "Added",
-  "companyFeed": "Company"
+  "companyFeed": "Company",
+  "chatsTitle": "Chats",
+  "newChat": "New chat",
+  "newGroupChat": "New group chat",
+  "groupChatTitle": "Group chat name",
+  "choosePeople": "Choose people",
+  "create": "Create",
+  "chatsEmpty": "No chats yet. Start one with the + button.",
+  "typeMessage": "Type a message…",
+  "you": "You",
+  "photo": "Photo",
+  "attachment": "Attachment",
+  "messageDeleted": "This message was deleted",
+  "deleteForEveryone": "Delete for everyone",
+  "deleteMessageConfirm": "Delete this message for everyone?",
+  "copy": "Copy",
+  "messageInfo": "Seen by…",
+  "delivered": "Delivered",
+  "seen": "Seen",
+  "notYet": "Not yet",
+  "online": "Online",
+  "offline": "Offline",
+  "typingOne": "{name} is typing…",
+  "@typingOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "typingMany": "Several people are typing…",
+  "chatInfo": "Chat info",
+  "renameChat": "Rename",
+  "leaveChat": "Leave chat",
+  "leaveChatConfirm": "Leave this group chat?",
+  "muteChat": "Mute",
+  "unmuteChat": "Unmute",
+  "sendMessage": "Send message",
+  "replyingTo": "Replying to {name}",
+  "@replyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "editingMessage": "Editing message",
+  "chatPrivacyNote": "Only the people in this chat can read it.",
+  "today": "Today",
+  "yesterday": "Yesterday"
 }

@@ -3,15 +3,22 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
-import '../application/feed_controller.dart';
+import '../../../core/storage/signed_urls.dart';
 import '../domain/post_attachment.dart';
 
 /// Photos as a grid; videos and other files as tiles that open in the
 /// computer's own player/viewer.
 class AttachmentsView extends StatelessWidget {
-  const AttachmentsView({super.key, required this.attachments});
+  const AttachmentsView({
+    super.key,
+    required this.attachments,
+    this.bucket = 'post-media',
+  });
 
   final List<PostAttachment> attachments;
+
+  /// Storage bucket the files live in.
+  final String bucket;
 
   @override
   Widget build(BuildContext context) {
@@ -24,17 +31,18 @@ class AttachmentsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (images.isNotEmpty) _ImageGrid(images: images),
-        for (final file in others) _FileTile(file: file),
+        if (images.isNotEmpty) _ImageGrid(images: images, bucket: bucket),
+        for (final file in others) _FileTile(file: file, bucket: bucket),
       ],
     );
   }
 }
 
 class _ImageGrid extends StatelessWidget {
-  const _ImageGrid({required this.images});
+  const _ImageGrid({required this.images, required this.bucket});
 
   final List<PostAttachment> images;
+  final String bucket;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +53,12 @@ class _ImageGrid extends StatelessWidget {
           : 16 / 10;
       return AspectRatio(
         aspectRatio: ratio.toDouble(),
-        child: _SignedImage(attachment: a, all: images, index: 0),
+        child: _SignedImage(
+          attachment: a,
+          all: images,
+          index: 0,
+          bucket: bucket,
+        ),
       );
     }
     final shown = images.take(4).toList();
@@ -62,7 +75,12 @@ class _ImageGrid extends StatelessWidget {
             Stack(
               fit: StackFit.expand,
               children: [
-                _SignedImage(attachment: a, all: images, index: i),
+                _SignedImage(
+                  attachment: a,
+                  all: images,
+                  index: i,
+                  bucket: bucket,
+                ),
                 if (i == 3 && images.length > 4)
                   IgnorePointer(
                     child: ColoredBox(
@@ -91,7 +109,10 @@ class _SignedImage extends ConsumerWidget {
     required this.attachment,
     required this.all,
     required this.index,
+    required this.bucket,
   });
+
+  final String bucket;
 
   final PostAttachment attachment;
   final List<PostAttachment> all;
@@ -99,7 +120,9 @@ class _SignedImage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final url = ref.watch(signedUrlProvider(attachment.storagePath));
+    final url = ref.watch(
+      signedUrlProvider((bucket: bucket, path: attachment.storagePath)),
+    );
     final placeholder = ColoredBox(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
     );
@@ -107,7 +130,8 @@ class _SignedImage extends ConsumerWidget {
       AsyncData(value: final link?) => GestureDetector(
         onTap: () => showDialog<void>(
           context: context,
-          builder: (_) => _ImageViewer(images: all, initial: index),
+          builder: (_) =>
+              _ImageViewer(images: all, initial: index, bucket: bucket),
         ),
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
@@ -135,7 +159,13 @@ class _SignedImage extends ConsumerWidget {
 
 /// Full-screen photo viewer with zoom and left/right arrows.
 class _ImageViewer extends ConsumerStatefulWidget {
-  const _ImageViewer({required this.images, required this.initial});
+  const _ImageViewer({
+    required this.images,
+    required this.initial,
+    required this.bucket,
+  });
+
+  final String bucket;
 
   final List<PostAttachment> images;
   final int initial;
@@ -166,16 +196,20 @@ class _ImageViewerState extends ConsumerState<_ImageViewer> {
             children: [
               for (final a in widget.images)
                 Consumer(
-                  builder: (context, ref, _) =>
-                      switch (ref.watch(signedUrlProvider(a.storagePath))) {
-                        AsyncData(value: final link?) => InteractiveViewer(
-                          maxScale: 5,
-                          child: Center(
-                            child: Image.network(link, fit: BoxFit.contain),
-                          ),
-                        ),
-                        _ => const Center(child: CircularProgressIndicator()),
-                      },
+                  builder: (context, ref, _) => switch (ref.watch(
+                    signedUrlProvider((
+                      bucket: widget.bucket,
+                      path: a.storagePath,
+                    )),
+                  )) {
+                    AsyncData(value: final link?) => InteractiveViewer(
+                      maxScale: 5,
+                      child: Center(
+                        child: Image.network(link, fit: BoxFit.contain),
+                      ),
+                    ),
+                    _ => const Center(child: CircularProgressIndicator()),
+                  },
                 ),
             ],
           ),
@@ -216,7 +250,9 @@ class _ImageViewerState extends ConsumerState<_ImageViewer> {
 }
 
 class _FileTile extends ConsumerWidget {
-  const _FileTile({required this.file});
+  const _FileTile({required this.file, required this.bucket});
+
+  final String bucket;
 
   final PostAttachment file;
 
@@ -240,9 +276,10 @@ class _FileTile extends ConsumerWidget {
         trailing: Text(l10n.openFile),
         onTap: () async {
           final messenger = ScaffoldMessenger.of(context);
-          final url = await ref
-              .read(signedUrlCacheProvider)
-              .urlFor(file.storagePath);
+          final url = await ref.read(signedUrlCacheProvider).urlFor((
+            bucket: bucket,
+            path: file.storagePath,
+          ));
           final ok =
               url != null &&
               await launchUrl(

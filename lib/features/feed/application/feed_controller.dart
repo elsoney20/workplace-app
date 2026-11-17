@@ -204,60 +204,6 @@ final feedControllerProvider =
       FeedController.new,
     );
 
-/// Caches signed links to private files and asks for several at once.
-class SignedUrlCache {
-  SignedUrlCache(this._repo);
-
-  final FeedRepository _repo;
-  final Map<String, (String, DateTime)> _cache = {};
-  final Map<String, Completer<String?>> _waiting = {};
-  bool _scheduled = false;
-
-  Future<String?> urlFor(String path) {
-    final cached = _cache[path];
-    if (cached != null && DateTime.now().isBefore(cached.$2)) {
-      return Future.value(cached.$1);
-    }
-    final pending = _waiting[path];
-    if (pending != null) return pending.future;
-    final completer = Completer<String?>();
-    _waiting[path] = completer;
-    if (!_scheduled) {
-      _scheduled = true;
-      scheduleMicrotask(_flush);
-    }
-    return completer.future;
-  }
-
-  Future<void> _flush() async {
-    _scheduled = false;
-    final batch = Map<String, Completer<String?>>.from(_waiting);
-    _waiting.clear();
-    try {
-      final urls = await _repo.signedUrls(batch.keys.toList());
-      // Links live 60 minutes; renew after 50.
-      final expires = DateTime.now().add(const Duration(minutes: 50));
-      for (final entry in batch.entries) {
-        final url = urls[entry.key];
-        if (url != null) _cache[entry.key] = (url, expires);
-        entry.value.complete(url);
-      }
-    } catch (_) {
-      for (final c in batch.values) {
-        c.complete(null);
-      }
-    }
-  }
-}
-
-final signedUrlCacheProvider = Provider<SignedUrlCache>(
-  (ref) => SignedUrlCache(ref.watch(feedRepositoryProvider)),
-);
-
-final signedUrlProvider = FutureProvider.family<String?, String>(
-  (ref, path) => ref.watch(signedUrlCacheProvider).urlFor(path),
-);
-
 final trendingHashtagsProvider =
     FutureProvider.autoDispose<List<(String, int)>>(
       (ref) => ref.watch(feedRepositoryProvider).fetchTrendingHashtags(),

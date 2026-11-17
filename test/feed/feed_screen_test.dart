@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workplace_app/app.dart';
 import 'package:workplace_app/core/l10n/locale_controller.dart';
+import 'package:workplace_app/features/chat/data/chat_repository.dart';
 import 'package:workplace_app/features/auth/application/auth_providers.dart';
 import 'package:workplace_app/features/auth/domain/auth_status.dart';
 import 'package:workplace_app/features/auth/domain/my_profile.dart';
@@ -13,6 +14,7 @@ import 'package:workplace_app/features/feed/domain/person.dart';
 import 'package:workplace_app/features/feed/presentation/animated_emoji.dart';
 
 import 'fake_feed_repository.dart';
+import '../chat/chat_test.dart' show FakeChatRepository;
 
 class _SignedIn extends AuthStatusController {
   @override
@@ -79,6 +81,7 @@ Future<FakeFeedRepository> _pump(
         sharedPreferencesProvider.overrideWithValue(prefs),
         authStatusProvider.overrideWith(_SignedIn.new),
         myProfileProvider.overrideWith((ref) async => me),
+        chatRepositoryProvider.overrideWithValue(FakeChatRepository()),
         feedRepositoryProvider.overrideWithValue(repo),
       ],
       child: const WorkplaceApp(),

@@ -14,6 +14,8 @@ import '../../auth/domain/my_profile.dart';
 import '../../auth/presentation/security_screen.dart';
 import '../../feed/domain/feed_scope.dart';
 import '../../feed/presentation/feed_view.dart';
+import '../../chat/application/chat_providers.dart';
+import '../../chat/presentation/chats_screen.dart';
 import '../../groups/presentation/groups_screen.dart';
 
 /// Home after login: the company feed.
@@ -61,6 +63,7 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          const _ChatsButton(),
           const LanguageMenuButton(),
           IconButton(
             key: const Key('signOutButton'),
@@ -90,6 +93,29 @@ class HomeScreen extends ConsumerWidget {
             _ => const Center(child: CircularProgressIndicator()),
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Chats with an unread badge. Watching it also keeps the "online" status
+/// and live chat updates running while the app is open.
+class _ChatsButton extends ConsumerWidget {
+  const _ChatsButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    ref.watch(onlinePeopleProvider);
+    final unread = ref.watch(unreadChatsProvider);
+    return IconButton(
+      key: const Key('openChats'),
+      tooltip: l10n.chatsTitle,
+      onPressed: () => context.push(ChatsScreen.routePath),
+      icon: Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: const Icon(Icons.chat_bubble_outline),
       ),
     );
   }

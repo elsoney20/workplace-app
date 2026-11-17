@@ -53,9 +53,6 @@ class FakeFeedRepository extends FeedRepository {
   ];
 
   @override
-  Future<Map<String, String>> signedUrls(List<String> paths) async => const {};
-
-  @override
   Future<String> createPost({
     required String authorId,
     required String body,

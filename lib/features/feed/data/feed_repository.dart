@@ -161,16 +161,6 @@ class FeedRepository {
     ];
   }
 
-  /// Short-lived links (1 hour) to open private files.
-  Future<Map<String, String>> signedUrls(List<String> paths) async {
-    if (paths.isEmpty) return const {};
-    final results = await _storage.createSignedUrlsResult(paths, 3600);
-    return {
-      for (final r in results)
-        if (r is SignedUrlSuccess) r.path: r.signedUrl,
-    };
-  }
-
   // ----------------------------------------------------------------- writes
 
   /// Creates the post, then uploads its files into `post-media/<post_id>/`.

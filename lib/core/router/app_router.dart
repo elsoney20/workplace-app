@@ -8,6 +8,8 @@ import '../../features/auth/domain/auth_status.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/second_factor_screen.dart';
 import '../../features/auth/presentation/security_screen.dart';
+import '../../features/chat/presentation/chat_screen.dart';
+import '../../features/chat/presentation/chats_screen.dart';
 import '../../features/groups/presentation/group_screen.dart';
 import '../../features/groups/presentation/groups_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -56,6 +58,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AdminScreen.routePath,
         name: AdminScreen.routeName,
         builder: (context, state) => const AdminScreen(),
+      ),
+      GoRoute(
+        path: ChatsScreen.routePath,
+        name: ChatsScreen.routeName,
+        builder: (context, state) => const ChatsScreen(),
+      ),
+      GoRoute(
+        path: ChatScreen.routePath,
+        name: ChatScreen.routeName,
+        builder: (context, state) =>
+            ChatScreen(conversationId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: GroupsScreen.routePath,
