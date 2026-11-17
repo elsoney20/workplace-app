@@ -12,9 +12,9 @@ import '../../auth/application/auth_providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/domain/my_profile.dart';
 import '../../auth/presentation/security_screen.dart';
+import '../../feed/presentation/feed_view.dart';
 
-/// Home after login. The company feed replaces the middle of this screen
-/// in Phase 3.
+/// Home after login: the company feed.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -71,9 +71,12 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
+          constraints: const BoxConstraints(maxWidth: 720),
           child: switch (profile) {
-            AsyncData(value: final p?) => _HomeBody(profile: p),
+            AsyncData(value: final p?) => FeedView(
+              me: p,
+              header: _HomeHeader(profile: p),
+            ),
             AsyncError() => Center(
               child: TextButton.icon(
                 onPressed: () => ref.invalidate(myProfileProvider),
@@ -89,8 +92,9 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _HomeBody extends StatelessWidget {
-  const _HomeBody({required this.profile});
+/// Greeting + shortcuts above the feed.
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader({required this.profile});
 
   final MyProfile profile;
 
@@ -100,55 +104,37 @@ class _HomeBody extends StatelessWidget {
     final theme = Theme.of(context);
     final details = [roleLabel(l10n, profile.role), ?profile.jobTitle];
 
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Text(
-          l10n.homeHello(profile.fullName),
-          style: theme.textTheme.headlineMedium,
-        ),
-        const SizedBox(height: 4),
-        Text(details.join(' · '), style: theme.textTheme.titleSmall),
-        const SizedBox(height: 4),
-        Text(
-          profile.phone,
-          textDirection: TextDirection.ltr,
-          textAlign: Directionality.of(context) == TextDirection.rtl
-              ? TextAlign.right
-              : TextAlign.left,
-        ),
-        const SizedBox(height: 24),
-        if (profile.isAdmin) ...[
-          _ActionCard(
-            key: const Key('openAdminPanel'),
-            icon: Icons.admin_panel_settings,
-            title: l10n.adminPanel,
-            subtitle: l10n.adminPanelSubtitle,
-            onTap: () => context.push(AdminScreen.routePath),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.homeHello(profile.fullName),
+            style: theme.textTheme.headlineSmall,
           ),
+          Text(details.join(' · '), style: theme.textTheme.titleSmall),
           const SizedBox(height: 12),
-        ],
-        _ActionCard(
-          icon: Icons.security,
-          title: l10n.securityTitle,
-          subtitle: l10n.securitySubtitle,
-          onTap: () => context.push(SecurityScreen.routePath),
-        ),
-        const SizedBox(height: 24),
-        Card(
-          color: theme.colorScheme.surfaceContainerLow,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.construction),
-                const SizedBox(width: 12),
-                Expanded(child: Text(l10n.homeComingSoon)),
-              ],
-            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (profile.isAdmin)
+                _ActionCard(
+                  key: const Key('openAdminPanel'),
+                  icon: Icons.admin_panel_settings,
+                  title: l10n.adminPanel,
+                  onTap: () => context.push(AdminScreen.routePath),
+                ),
+              _ActionCard(
+                icon: Icons.security,
+                title: l10n.securityTitle,
+                onTap: () => context.push(SecurityScreen.routePath),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -158,26 +144,15 @@ class _ActionCard extends StatelessWidget {
     super.key,
     required this.icon,
     required this.title,
-    required this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
   final String title;
-  final String subtitle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Icon(icon, size: 32),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
-    );
+    return ActionChip(avatar: Icon(icon), label: Text(title), onPressed: onTap);
   }
 }

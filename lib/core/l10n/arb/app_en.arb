@@ -150,5 +150,160 @@
   "authenticatorManual": "Can't scan? Enter this key instead:",
   "authenticatorStep3": "3. Enter the 6-digit code the app shows:",
   "authenticatorDisableConfirm": "Turn off the authenticator app? Your account will be protected by the SMS code only.",
-  "copied": "Copied"
+  "copied": "Copied",
+  "feedTitle": "Company feed",
+  "composerPrompt": "What's on your mind, {name}?",
+  "@composerPrompt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "newPost": "New post",
+  "editPost": "Edit post",
+  "postAction": "Post",
+  "postHint": "Write something… use @ to mention someone and # for a hashtag",
+  "addPhotoVideo": "Photo / video",
+  "addFile": "File",
+  "addEmoji": "Emoji",
+  "announcementSwitch": "Pin as company announcement",
+  "announcementBadge": "Announcement",
+  "pinnedBadge": "Pinned",
+  "uploadingProgress": "Uploading {done} of {total}…",
+  "@uploadingProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fileTooBig": "\"{name}\" is bigger than 50 MB.",
+  "@fileTooBig": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyPost": "Write something or add a file first.",
+  "feedEmpty": "No posts yet. Be the first to post!",
+  "feedEmptyHashtag": "No posts with #{tag}.",
+  "@feedEmptyHashtag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "showingHashtag": "Posts with #{tag}",
+  "@showingHashtag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "clearFilter": "Show all",
+  "trending": "Trending",
+  "refresh": "Refresh",
+  "loadMore": "Load more",
+  "react": "React",
+  "like": "Like",
+  "comment": "Comment",
+  "commentsTitle": "Comments",
+  "commentCount": "{count, plural, =0{No comments} =1{1 comment} other{{count} comments}}",
+  "@commentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "writeComment": "Write a comment…",
+  "writeReply": "Reply to {name}…",
+  "@writeReply": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reply": "Reply",
+  "send": "Send",
+  "commentsLocked": "Comments are turned off for this post.",
+  "noCommentsYet": "No comments yet.",
+  "edit": "Edit",
+  "delete": "Delete",
+  "deletePostConfirm": "Delete this post?",
+  "deleteCommentConfirm": "Delete this comment?",
+  "pinPost": "Pin as announcement",
+  "unpinPost": "Unpin",
+  "lockComments": "Turn off comments",
+  "unlockComments": "Turn on comments",
+  "seenBy": "Seen by {count}",
+  "@seenBy": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "seenByOf": "Seen by {count} of {total}",
+  "@seenByOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "seenByTitle": "Seen by",
+  "nobodySeenYet": "Nobody has seen it yet.",
+  "reactionsTitle": "Reactions",
+  "allReactions": "All",
+  "moreEmojis": "More emojis",
+  "edited": "edited",
+  "justNow": "just now",
+  "minutesAgo": "{count}m",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count}h",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{count}d",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "openFile": "Open",
+  "cannotOpenFile": "Could not open the file.",
+  "noPeopleFound": "No one found",
+  "emojiSmileys": "Smileys",
+  "emojiGestures": "Hands",
+  "emojiHearts": "Hearts",
+  "emojiCelebration": "Celebrate",
+  "emojiWork": "Work",
+  "emojiPeople": "People",
+  "emojiNature": "Nature",
+  "emojiFlags": "Flags",
+  "menuAccount": "Account"
 }

@@ -9,7 +9,11 @@ import 'package:workplace_app/features/auth/domain/auth_status.dart';
 import 'package:workplace_app/features/auth/domain/my_profile.dart';
 import 'package:workplace_app/features/auth/presentation/login_screen.dart';
 import 'package:workplace_app/features/auth/presentation/second_factor_screen.dart';
+import 'package:workplace_app/features/feed/data/feed_repository.dart';
+import 'package:workplace_app/features/feed/presentation/animated_emoji.dart';
 import 'package:workplace_app/features/home/presentation/home_screen.dart';
+
+import 'feed/fake_feed_repository.dart';
 
 class _FakeAuthStatus extends AuthStatusController {
   _FakeAuthStatus(this.initial);
@@ -34,6 +38,7 @@ Future<void> _pumpApp(
   AuthStatus status = AuthStatus.signedOut,
   MyProfile? profile,
 }) async {
+  AnimatedEmoji.enabled = false;
   SharedPreferences.setMockInitialValues({'app_locale': locale});
   final prefs = await SharedPreferences.getInstance();
 
@@ -43,6 +48,7 @@ Future<void> _pumpApp(
         sharedPreferencesProvider.overrideWithValue(prefs),
         authStatusProvider.overrideWith(() => _FakeAuthStatus(status)),
         myProfileProvider.overrideWith((ref) async => profile),
+        feedRepositoryProvider.overrideWithValue(FakeFeedRepository()),
       ],
       child: const WorkplaceApp(),
     ),
