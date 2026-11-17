@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
@@ -84,8 +85,21 @@ class _LiquidRailState extends State<LiquidRail> with TickerProviderStateMixin {
     _to = widget.selected;
     _from = widget.selected;
     _move.value = 1;
-    if (FadeSlideIn.enabled) _wobble.repeat();
+    _wobbleFor(const Duration(seconds: 3));
     WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+  }
+
+  Timer? _calm;
+
+  /// The blob wobbles while it moves and a little after, then rests (so an
+  /// idle app doesn't redraw anything).
+  void _wobbleFor(Duration d) {
+    if (!FadeSlideIn.enabled) return;
+    _calm?.cancel();
+    if (!_wobble.isAnimating) unawaited(_wobble.repeat());
+    _calm = Timer(d, () {
+      if (mounted) _wobble.stop();
+    });
   }
 
   @override
@@ -104,6 +118,7 @@ class _LiquidRailState extends State<LiquidRail> with TickerProviderStateMixin {
         _move.value = 1;
       } else {
         _move.forward(from: 0);
+        _wobbleFor(const Duration(milliseconds: 2600));
       }
     }
   }
@@ -132,6 +147,7 @@ class _LiquidRailState extends State<LiquidRail> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _calm?.cancel();
     _move.dispose();
     _wobble.dispose();
     super.dispose();
