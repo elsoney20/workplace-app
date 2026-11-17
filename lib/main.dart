@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'core/config/app_env.dart';
+import 'core/diagnostics/frame_diagnostics.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/supabase/supabase_bootstrap.dart';
 
@@ -18,6 +19,7 @@ Future<void> main() async {
   await SupabaseBootstrap.initialize();
   final prefs = await SharedPreferences.getInstance();
 
+  FrameDiagnostics.startIfEnabled();
   runApp(
     ProviderScope(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
