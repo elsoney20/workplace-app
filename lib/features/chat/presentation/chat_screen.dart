@@ -27,9 +27,13 @@ import 'chat_info_dialog.dart';
 
 /// One conversation (1:1 or group).
 class ChatScreen extends ConsumerWidget {
-  const ChatScreen({super.key, required this.conversationId});
+  const ChatScreen({super.key, required this.conversationId, this.onClose});
 
   final String conversationId;
+
+  /// Set when the chat is shown inside the home page's side panel instead of
+  /// as its own page: shows a close button instead of "back".
+  final VoidCallback? onClose;
 
   static const String routePath = '/chats/:id';
   static const String routeName = 'chat';
@@ -58,15 +62,16 @@ class ChatScreen extends ConsumerWidget {
         ),
       );
     }
-    return _ChatView(conversation: conversation, me: me);
+    return _ChatView(conversation: conversation, me: me, onClose: onClose);
   }
 }
 
 class _ChatView extends ConsumerStatefulWidget {
-  const _ChatView({required this.conversation, required this.me});
+  const _ChatView({required this.conversation, required this.me, this.onClose});
 
   final Conversation conversation;
   final MyProfile me;
+  final VoidCallback? onClose;
 
   @override
   ConsumerState<_ChatView> createState() => _ChatViewState();
@@ -305,9 +310,21 @@ class _ChatViewState extends ConsumerState<_ChatView> {
           : l10n.offline;
     }
 
+    final onClose = widget.onClose;
     return Scaffold(
+      backgroundColor: onClose == null ? null : Colors.transparent,
       appBar: AppBar(
-        titleSpacing: 0,
+        automaticallyImplyLeading: onClose == null,
+        backgroundColor: onClose == null ? null : Colors.transparent,
+        leading: onClose == null
+            ? null
+            : IconButton(
+                key: const Key('closeChatPanel'),
+                tooltip: AppLocalizations.of(context).closeChat,
+                onPressed: onClose,
+                icon: const Icon(Icons.close),
+              ),
+        titleSpacing: onClose == null ? 0 : 4,
         title: ListTile(
           contentPadding: EdgeInsets.zero,
           leading: c.isGroup

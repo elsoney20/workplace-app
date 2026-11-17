@@ -78,9 +78,18 @@ class ChatsScreen extends ConsumerWidget {
 }
 
 class ConversationTile extends ConsumerWidget {
-  const ConversationTile({super.key, required this.conversation});
+  const ConversationTile({
+    super.key,
+    required this.conversation,
+    this.onOpen,
+    this.selected = false,
+  });
 
   final Conversation conversation;
+
+  /// Opens the chat somewhere else (the home side panel). Default: new page.
+  final VoidCallback? onOpen;
+  final bool selected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -130,7 +139,7 @@ class ConversationTile extends ConsumerWidget {
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: const Color(0xFF7BE8A8),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: theme.colorScheme.surface,
@@ -180,7 +189,10 @@ class ConversationTile extends ConsumerWidget {
             ),
         ],
       ),
-      onTap: () => context.push(ChatScreen.pathFor(c.id)),
+      selected: selected,
+      selectedTileColor: theme.colorScheme.primary.withValues(alpha: .10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      onTap: onOpen ?? () => context.push(ChatScreen.pathFor(c.id)),
     );
   }
 }

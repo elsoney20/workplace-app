@@ -522,5 +522,35 @@
   "dismissReport": "Keep (dismiss)",
   "openPost": "Open post",
   "contentDeleted": "Content deleted",
-  "profileTitle": "Profile"
+  "profileTitle": "Profile",
+  "homeTitle": "Home",
+  "goodMorning": "Good morning, {name}",
+  "@goodMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goodEvening": "Good evening, {name}",
+  "@goodEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "searchShort": "Search colleagues, posts or messages",
+  "seeAll": "See all",
+  "closeChat": "Close chat",
+  "pickAChat": "Pick a chat to open it here.",
+  "demoContentTitle": "Demo content",
+  "demoContentBody": "Adds 6 demo colleagues, posts with photos and a video, comments, reactions, a group and chats, so you can try the app. You can remove it any time.",
+  "demoLoad": "Load demo content",
+  "demoRemove": "Remove demo content",
+  "demoLoaded": "Demo content is ready. Open the home page.",
+  "demoRemoved": "Demo content removed. Your own demo posts stay; delete them from the feed if you like.",
+  "demoPost1": "Black Friday offers start Thursday at midnight in every branch 🔥 All teams please check the shifts in the operations group. #black_friday #offers",
+  "demoPost2": "Registration is open for the G2E Cup 🏆 the branches FIFA tournament. Send your team name in the comments! #g2e_cup",
+  "demoPost3": "New arrivals landed in all branches 🎮 watch the video 👇 #new_arrivals"
 }
