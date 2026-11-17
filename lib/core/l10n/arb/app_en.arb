@@ -1,0 +1,33 @@
+{
+  "@@locale": "en",
+  "homeWelcome": "Welcome to {appName}",
+  "@homeWelcome": {
+    "description": "Main greeting on the home screen.",
+    "placeholders": {
+      "appName": { "type": "String" }
+    }
+  },
+  "homeSubtitle": "Phase 0 setup is working. This screen will be replaced in later phases.",
+  "languageSectionTitle": "Language",
+  "languageSystem": "System",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "backendSectionTitle": "Backend connection",
+  "backendChecking": "Checking…",
+  "backendOnline": "Connected to Supabase",
+  "backendOffline": "Cannot reach Supabase",
+  "retry": "Retry",
+  "directionSectionTitle": "Text direction",
+  "directionCurrent": "Current direction: {direction}",
+  "@directionCurrent": {
+    "placeholders": {
+      "direction": { "type": "String" }
+    }
+  },
+  "directionLtr": "Left to right",
+  "directionRtl": "Right to left",
+  "inputTestHint": "Type here to test input",
+  "themeSectionTitle": "Brand colors",
+  "primaryColorLabel": "Primary",
+  "secondaryColorLabel": "Secondary"
+}

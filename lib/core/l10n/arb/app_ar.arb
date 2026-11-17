@@ -1,0 +1,22 @@
+{
+  "@@locale": "ar",
+  "homeWelcome": "أهلاً بك في {appName}",
+  "homeSubtitle": "إعداد المرحلة صفر يعمل بنجاح. سيتم استبدال هذه الشاشة في المراحل القادمة.",
+  "languageSectionTitle": "اللغة",
+  "languageSystem": "لغة النظام",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "backendSectionTitle": "الاتصال بالخادم",
+  "backendChecking": "جارٍ التحقق…",
+  "backendOnline": "متصل بـ Supabase",
+  "backendOffline": "تعذر الوصول إلى Supabase",
+  "retry": "إعادة المحاولة",
+  "directionSectionTitle": "اتجاه النص",
+  "directionCurrent": "الاتجاه الحالي: {direction}",
+  "directionLtr": "من اليسار لليمين",
+  "directionRtl": "من اليمين لليسار",
+  "inputTestHint": "اكتب هنا لتجربة الإدخال",
+  "themeSectionTitle": "ألوان الهوية",
+  "primaryColorLabel": "الأساسي",
+  "secondaryColorLabel": "الثانوي"
+}
