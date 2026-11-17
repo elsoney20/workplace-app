@@ -43,6 +43,11 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
   bool _loading = false;
   double? _ratio;
 
+  /// Where to continue after the player was let go while paused.
+  Duration _resumeAt = Duration.zero;
+  Timer? _rest;
+  bool _fullScreenOpen = false;
+
   // The player is only created when someone presses play. A ready video
   // texture keeps the window redrawing (~100 fps on Windows) even while
   // paused, so the feed stays a plain picture until then.
@@ -74,12 +79,14 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
         _loading = false;
         _ratio = c.value.aspectRatio;
       });
-      if (fullScreen) {
-        unawaited(c.play());
-        await _fullScreen();
-      } else {
-        await c.play();
-      }
+      // The Windows player ignores play() sent right after initialize, so
+      // give it a frame to settle first.
+      await WidgetsBinding.instance.endOfFrame;
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      if (!mounted || _c != c) return;
+      if (_resumeAt > Duration.zero) await c.seekTo(_resumeAt);
+      await c.play();
+      if (fullScreen) await _fullScreen();
     } catch (_) {
       if (mounted) setState(() => _failed = true);
     }
@@ -115,14 +122,33 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
       // Back to the start, like Facebook.
       unawaited(c.seekTo(Duration.zero));
     }
+    // A paused player still makes the window redraw all the time, so let it
+    // go a few seconds after pausing and show the still picture instead.
+    if (c.value.isPlaying || _fullScreenOpen) {
+      _rest?.cancel();
+      _rest = null;
+    } else {
+      _rest ??= Timer(const Duration(seconds: 3), _release);
+    }
     // Only rebuild when the shape changes; the controls listen themselves.
     if (c.value.aspectRatio != _ratio) {
       setState(() => _ratio = c.value.aspectRatio);
     }
   }
 
+  void _release() {
+    _rest = null;
+    final c = _c;
+    if (!mounted || c == null || c.value.isPlaying || _fullScreenOpen) return;
+    _resumeAt = c.value.isCompleted ? Duration.zero : c.value.position;
+    c.removeListener(_onTick);
+    setState(() => _c = null);
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(c.dispose()));
+  }
+
   @override
   void dispose() {
+    _rest?.cancel();
     final c = _c;
     if (c != null) {
       c.removeListener(_onTick);
@@ -146,6 +172,9 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
       unawaited(_load(fullScreen: true));
       return;
     }
+    _fullScreenOpen = true;
+    _rest?.cancel();
+    _rest = null;
     await showGeneralDialog<void>(
       context: context,
       barrierColor: Colors.black,
@@ -162,6 +191,8 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
         ),
       ),
     );
+    _fullScreenOpen = false;
+    _onTick();
   }
 
   @override
@@ -198,7 +229,6 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
                   key: const Key('videoPlay'),
                   behavior: HitTestBehavior.opaque,
                   onTap: _toggle,
-                  onDoubleTap: _fullScreen,
                   child: Center(
                     child: _loading
                         ? const SizedBox.square(
@@ -330,7 +360,6 @@ class _ControlsState extends State<_Controls> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onToggle,
-        onDoubleTap: widget.onFullScreen,
         child: Stack(
           fit: StackFit.expand,
           children: [
