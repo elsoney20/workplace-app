@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
+import '../../../core/widgets/motion.dart';
 import '../../auth/domain/my_profile.dart';
 import '../../moderation/presentation/report_dialog.dart';
 import '../application/feed_controller.dart';
@@ -294,9 +295,12 @@ class _PostCardState extends ConsumerState<PostCard> {
                   builder: (anchor) => TextButton.icon(
                     key: Key('reactButton-${post.id}'),
                     onPressed: () => _react(anchor),
-                    icon: post.myReaction == null
-                        ? const Icon(Icons.thumb_up_outlined)
-                        : AnimatedEmoji(post.myReaction!, size: 22),
+                    icon: PopOnChange(
+                      trigger: post.myReaction,
+                      child: post.myReaction == null
+                          ? const Icon(Icons.thumb_up_outlined)
+                          : AnimatedEmoji(post.myReaction!, size: 22),
+                    ),
                     label: Text(l10n.react),
                   ),
                 ),

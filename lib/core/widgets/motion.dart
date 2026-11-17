@@ -113,7 +113,10 @@ class _PopOnChangeState extends State<PopOnChange>
   late final Animation<double> _scale = TweenSequence<double>([
     TweenSequenceItem(tween: Tween<double>(begin: 1, end: 1.4), weight: 35),
     TweenSequenceItem(
-      tween: Tween<double>(begin: 1.4, end: 1).chain(CurveTween(curve: kSpring)),
+      tween: Tween<double>(
+        begin: 1.4,
+        end: 1,
+      ).chain(CurveTween(curve: kSpring)),
       weight: 65,
     ),
   ]).animate(_c);
@@ -175,10 +178,8 @@ class BrandBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
-      ),
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
       child: Stack(
         children: [
           Positioned.fill(
@@ -186,11 +187,15 @@ class BrandBackdrop extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
-                    center: const AlignmentDirectional(0.9, -1.1)
-                        .resolve(Directionality.of(context)),
+                    center: const AlignmentDirectional(
+                      0.9,
+                      -1.1,
+                    ).resolve(Directionality.of(context)),
                     radius: 1.1,
                     colors: [
-                      const Color(0xFF95AB52).withValues(alpha: dark ? .16 : .14),
+                      const Color(
+                        0xFF95AB52,
+                      ).withValues(alpha: dark ? .16 : .14),
                       const Color(0x0095AB52),
                     ],
                   ),
@@ -203,11 +208,15 @@ class BrandBackdrop extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
-                    center: const AlignmentDirectional(-0.9, -1.05)
-                        .resolve(Directionality.of(context)),
+                    center: const AlignmentDirectional(
+                      -0.9,
+                      -1.05,
+                    ).resolve(Directionality.of(context)),
                     radius: 0.9,
                     colors: [
-                      const Color(0xFFF4B63D).withValues(alpha: dark ? .09 : .10),
+                      const Color(
+                        0xFFF4B63D,
+                      ).withValues(alpha: dark ? .09 : .10),
                       const Color(0x00F4B63D),
                     ],
                   ),

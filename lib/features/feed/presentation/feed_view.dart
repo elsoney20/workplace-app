@@ -9,6 +9,7 @@ import 'person_avatar.dart';
 import 'post_card.dart';
 import 'post_composer_dialog.dart';
 import '../domain/person.dart';
+import '../../../core/widgets/motion.dart';
 
 /// The company feed: "write a post" box, pinned announcements, then posts.
 class FeedView extends ConsumerStatefulWidget {
@@ -142,12 +143,15 @@ class _FeedViewState extends ConsumerState<FeedView> {
       case AsyncData(:final value):
         for (final p in value.pinned) {
           children.add(
-            PostCard(
-              key: ValueKey('pinned-${p.id}'),
-              post: p,
-              me: widget.me,
-              scope: widget.scope,
-              onHashtag: _filter,
+            FadeSlideIn(
+              key: ValueKey('anim-pinned-${p.id}'),
+              child: PostCard(
+                key: ValueKey('pinned-${p.id}'),
+                post: p,
+                me: widget.me,
+                scope: widget.scope,
+                onHashtag: _filter,
+              ),
             ),
           );
         }
@@ -163,14 +167,20 @@ class _FeedViewState extends ConsumerState<FeedView> {
             ),
           );
         }
-        for (final p in value.posts) {
+        for (final (i, p) in value.posts.indexed) {
           children.add(
-            PostCard(
-              key: ValueKey(p.id),
-              post: p,
-              me: widget.me,
-              scope: widget.scope,
-              onHashtag: _filter,
+            FadeSlideIn(
+              key: ValueKey('anim-${p.id}'),
+              index: i,
+              child: HoverLift(
+                child: PostCard(
+                  key: ValueKey(p.id),
+                  post: p,
+                  me: widget.me,
+                  scope: widget.scope,
+                  onHashtag: _filter,
+                ),
+              ),
             ),
           );
         }

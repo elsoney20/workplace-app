@@ -7,6 +7,7 @@ import '../data/admin_repository.dart';
 import '../domain/department.dart';
 import '../domain/employee.dart';
 import 'admin_errors.dart';
+import 'demo_content_tab.dart';
 import 'department_form_dialog.dart';
 import 'employee_form_dialog.dart';
 
@@ -30,7 +31,7 @@ class AdminScreen extends ConsumerWidget {
     }
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.adminPanel),
@@ -38,6 +39,10 @@ class AdminScreen extends ConsumerWidget {
             tabs: [
               Tab(icon: const Icon(Icons.badge), text: l10n.employeesTab),
               Tab(icon: const Icon(Icons.apartment), text: l10n.departmentsTab),
+              Tab(
+                icon: const Icon(Icons.auto_awesome),
+                text: l10n.demoContentTitle,
+              ),
             ],
           ),
         ),
@@ -45,6 +50,7 @@ class AdminScreen extends ConsumerWidget {
           children: [
             _EmployeesTab(myProfileId: profile.id),
             const _DepartmentsTab(),
+            DemoContentTab(myProfileId: profile.id),
           ],
         ),
       ),
