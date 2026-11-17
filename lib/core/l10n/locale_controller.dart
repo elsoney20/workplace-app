@@ -11,8 +11,8 @@ final sharedPreferencesProvider = Provider<SharedPreferences>(
 
 /// The language the user picked, or `null` to follow the OS language.
 ///
-/// Stored on the device for now. In Phase 2 it will also be saved to the
-/// user's profile so it follows them across devices.
+/// Stored on the device. Saving it to the profile (so it follows the user
+/// across devices) is planned for a later phase.
 class LocaleController extends Notifier<Locale?> {
   static const String _storageKey = 'app_locale';
 

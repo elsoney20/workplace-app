@@ -19,6 +19,7 @@ dependencies:
   http: ^1.2.0
   material_ui: ^1.11.1
   cupertino_ui: ^1.1.7
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:
