@@ -87,7 +87,7 @@ class _HoverLiftState extends State<HoverLift> {
         duration: const Duration(milliseconds: 300),
         curve: kSmooth,
         offset: Offset(0, _hover ? -widget.lift / 100 : 0),
-        child: widget.child,
+        child: RepaintBoundary(child: widget.child),
       ),
     );
   }
@@ -178,53 +178,52 @@ class BrandBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final dir = Directionality.of(context);
+
+    Widget glow(AlignmentDirectional center, double radius, Color color) =>
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: center.resolve(dir),
+                radius: radius,
+                colors: [color, color.withValues(alpha: 0)],
+              ),
+            ),
+          ),
+        );
+
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerLowest,
       child: Stack(
         children: [
+          // The glow never changes: its own layer, so it is drawn once and
+          // not again on every frame of the content above it.
           Positioned.fill(
             child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const AlignmentDirectional(
-                      0.9,
-                      -1.1,
-                    ).resolve(Directionality.of(context)),
-                    radius: 1.1,
-                    colors: [
+              child: RepaintBoundary(
+                child: Stack(
+                  children: [
+                    glow(
+                      const AlignmentDirectional(0.9, -1.1),
+                      1.1,
                       const Color(
                         0xFF95AB52,
                       ).withValues(alpha: dark ? .16 : .14),
-                      const Color(0x0095AB52),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const AlignmentDirectional(
-                      -0.9,
-                      -1.05,
-                    ).resolve(Directionality.of(context)),
-                    radius: 0.9,
-                    colors: [
+                    ),
+                    glow(
+                      const AlignmentDirectional(-0.9, -1.05),
+                      0.9,
                       const Color(
                         0xFFF4B63D,
                       ).withValues(alpha: dark ? .09 : .10),
-                      const Color(0x00F4B63D),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          child,
+          Positioned.fill(child: RepaintBoundary(child: child)),
         ],
       ),
     );

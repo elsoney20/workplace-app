@@ -826,7 +826,7 @@ class _MessageBubble extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              AnimatedEmoji(e.key, size: 18),
+                              AnimatedEmoji(e.key, size: 18, onHover: true),
                               if (e.value.length > 1)
                                 Text(
                                   ' ${e.value.length}',

@@ -299,7 +299,11 @@ class _PostCardState extends ConsumerState<PostCard> {
                       trigger: post.myReaction,
                       child: post.myReaction == null
                           ? const Icon(Icons.thumb_up_outlined)
-                          : AnimatedEmoji(post.myReaction!, size: 22),
+                          : AnimatedEmoji(
+                              post.myReaction!,
+                              size: 22,
+                              onHover: true,
+                            ),
                     ),
                     label: Text(l10n.react),
                   ),
