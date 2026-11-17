@@ -54,7 +54,29 @@ supabase link --project-ref YOUR-PROJECT-REF
 ```
 
 Schema changes are SQL files in `supabase/migrations/`, applied with
-`supabase db push`.
+`supabase db push`. Never edit a migration that was already pushed; add a new one.
+
+## Database & security (Phase 1)
+
+| Migration | What it does |
+|---|---|
+| `..._core_schema.sql` | Tables: employees (`profiles`, also the phone allowlist), departments, groups, feed, chat, reports, notifications |
+| `..._security_helpers.sql` | `private.*` helper functions used by every rule |
+| `..._rls_policies.sql` | Row Level Security on every table + guards on protected columns |
+| `..._chat_functions.sql` | `get_or_create_direct_conversation`, `create_group_conversation`, `mark_conversation_delivered`, `mark_conversation_seen` |
+| `..._auth_allowlist.sql` | Auth hooks: block unregistered/deactivated phones; link the login to the profile |
+| `..._storage_and_realtime.sql` | Private buckets `avatars`, `post-media`, `chat-media` with matching rules; Realtime tables |
+
+Key rules (all tested in `supabase/tests/01_rls_test.sql`):
+- Only phone numbers an admin added to `profiles` can sign in.
+- `is_active = false` removes all access immediately.
+- Chats and chat files are readable only by conversation members. No admin exception.
+- `profiles.phone` is not readable directly; use the `profile_contacts` view (respects `phone_visibility`).
+- The app must select explicit columns from `profiles` (not `*`).
+
+Storage paths: `avatars/<profile_id>/...`, `post-media/<post_id>/...`, `chat-media/<conversation_id>/...`.
+
+Security tests run in CI on a plain PostgreSQL server (`scripts/test_db.sh`).
 
 Tests:
 
