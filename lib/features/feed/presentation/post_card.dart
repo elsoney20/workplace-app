@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../auth/domain/my_profile.dart';
+import '../../moderation/presentation/report_dialog.dart';
 import '../application/feed_controller.dart';
 import '../data/feed_repository.dart';
 import '../domain/feed_post.dart';
@@ -38,7 +39,7 @@ class PostCard extends ConsumerStatefulWidget {
   ConsumerState<PostCard> createState() => _PostCardState();
 }
 
-enum _MenuAction { edit, delete, pin, unpin, lock, unlock, seenBy }
+enum _MenuAction { edit, delete, pin, unpin, lock, unlock, seenBy, report }
 
 class _PostCardState extends ConsumerState<PostCard> {
   FeedPost get post => widget.post;
@@ -136,6 +137,8 @@ class _PostCardState extends ConsumerState<PostCard> {
         case _MenuAction.unlock:
           await repo.setCommentsLocked(post.id, locked: false);
           await feed.refresh();
+        case _MenuAction.report:
+          await showReportDialog(context, ref, postId: post.id);
         case _MenuAction.seenBy:
           if (mounted) {
             await showSeenByDialog(
@@ -174,6 +177,12 @@ class _PostCardState extends ConsumerState<PostCard> {
         ),
       if (canSeeViewers)
         PopupMenuItem(value: _MenuAction.seenBy, child: Text(l10n.seenByTitle)),
+      if (!_mine)
+        PopupMenuItem(
+          key: Key('reportPost-${post.id}'),
+          value: _MenuAction.report,
+          child: Text(l10n.reportAction),
+        ),
     ];
 
     return Card(

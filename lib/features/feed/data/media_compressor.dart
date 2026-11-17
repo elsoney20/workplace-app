@@ -14,26 +14,30 @@ class CompressedImage {
 
 /// Shrinks photos before upload so they load fast and use little storage.
 ///
-/// * Longest side at most [maxSide] pixels (1920 = sharp on any screen).
+/// * Longest side at most [defaultMaxSide] pixels (1920 = sharp on any screen).
 /// * Saved as JPEG quality 80 (a 6 MB phone photo usually becomes ~300 KB).
 /// * GIFs are kept as they are, so animations still play.
 /// * If the result would be bigger than the original, the original is kept.
 abstract final class MediaCompressor {
-  static const int maxSide = 1920;
+  static const int defaultMaxSide = 1920;
   static const int jpegQuality = 80;
 
   static Future<CompressedImage?> compressImage(
     Uint8List original,
-    String mimeType,
-  ) {
-    return Isolate.run(() => compressImageSync(original, mimeType));
+    String mimeType, {
+    int maxSide = defaultMaxSide,
+  }) {
+    return Isolate.run(
+      () => compressImageSync(original, mimeType, maxSide: maxSide),
+    );
   }
 
   /// Same as [compressImage] but on the current thread (used by tests).
   static CompressedImage? compressImageSync(
     Uint8List original,
-    String mimeType,
-  ) {
+    String mimeType, {
+    int maxSide = defaultMaxSide,
+  }) {
     final decoded = img.decodeImage(original);
     if (decoded == null) return null;
     if (mimeType == 'image/gif') {

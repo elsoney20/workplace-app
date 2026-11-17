@@ -16,7 +16,12 @@ import '../../feed/domain/feed_scope.dart';
 import '../../feed/presentation/feed_view.dart';
 import '../../chat/application/chat_providers.dart';
 import '../../chat/presentation/chats_screen.dart';
+import '../../directory/presentation/directory_screen.dart';
 import '../../groups/presentation/groups_screen.dart';
+import '../../moderation/presentation/reports_screen.dart';
+import '../../notifications/application/notifications_providers.dart';
+import '../../notifications/presentation/notifications_screen.dart';
+import '../../search/presentation/search_screen.dart';
 
 /// Home after login: the company feed.
 class HomeScreen extends ConsumerWidget {
@@ -63,6 +68,13 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            key: const Key('openSearch'),
+            tooltip: l10n.searchTitle,
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push(SearchScreen.routePath),
+          ),
+          const _NotificationsButton(),
           const _ChatsButton(),
           const LanguageMenuButton(),
           IconButton(
@@ -121,6 +133,32 @@ class _ChatsButton extends ConsumerWidget {
   }
 }
 
+/// Bell with the unread count. Watching the tick keeps the live
+/// notifications channel (and Windows toasts) running while the app is open.
+class _NotificationsButton extends ConsumerWidget {
+  const _NotificationsButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    ref.watch(notificationsTickProvider);
+    final unread = ref.watch(unreadNotificationsProvider).value ?? 0;
+    return IconButton(
+      key: const Key('openNotifications'),
+      tooltip: l10n.notificationsTitle,
+      onPressed: () async {
+        await context.push(NotificationsScreen.routePath);
+        ref.invalidate(unreadNotificationsProvider);
+      },
+      icon: Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: const Icon(Icons.notifications_outlined),
+      ),
+    );
+  }
+}
+
 /// Greeting + shortcuts above the feed.
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader({required this.profile});
@@ -154,6 +192,25 @@ class _HomeHeader extends StatelessWidget {
                 title: l10n.groupsTitle,
                 onTap: () => context.push(GroupsScreen.routePath),
               ),
+              _ActionCard(
+                key: const Key('openDirectory'),
+                icon: Icons.contacts_outlined,
+                title: l10n.directoryTitle,
+                onTap: () => context.push(DirectoryScreen.routePath),
+              ),
+              _ActionCard(
+                key: const Key('openMyProfile'),
+                icon: Icons.person_outline,
+                title: l10n.myProfile,
+                onTap: () => context.push(MyProfileScreen.routePath),
+              ),
+              if (profile.isAdmin || profile.role == 'manager')
+                _ActionCard(
+                  key: const Key('openReports'),
+                  icon: Icons.flag_outlined,
+                  title: l10n.reportsTitle,
+                  onTap: () => context.push(ReportsScreen.routePath),
+                ),
               if (profile.isAdmin)
                 _ActionCard(
                   key: const Key('openAdminPanel'),

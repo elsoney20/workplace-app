@@ -15,6 +15,7 @@ import 'package:workplace_app/features/feed/presentation/animated_emoji.dart';
 
 import 'fake_feed_repository.dart';
 import '../chat/chat_test.dart' show FakeChatRepository;
+import '../phase6/fakes.dart';
 
 class _SignedIn extends AuthStatusController {
   @override
@@ -82,6 +83,7 @@ Future<FakeFeedRepository> _pump(
         authStatusProvider.overrideWith(_SignedIn.new),
         myProfileProvider.overrideWith((ref) async => me),
         chatRepositoryProvider.overrideWithValue(FakeChatRepository()),
+        ...phase6Overrides(),
         feedRepositoryProvider.overrideWithValue(repo),
       ],
       child: const WorkplaceApp(),

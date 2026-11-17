@@ -10,9 +10,15 @@ import '../../features/auth/presentation/second_factor_screen.dart';
 import '../../features/auth/presentation/security_screen.dart';
 import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/chat/presentation/chats_screen.dart';
+import '../../features/directory/presentation/directory_screen.dart';
+import '../../features/feed/presentation/post_screen.dart';
 import '../../features/groups/presentation/group_screen.dart';
 import '../../features/groups/presentation/groups_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/moderation/presentation/reports_screen.dart';
+import '../../features/notifications/application/desktop_notifier.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/search/presentation/search_screen.dart';
 
 /// App routes. Logged-out users only ever see the login screens.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -82,12 +88,55 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             GroupScreen(groupId: state.pathParameters['id']!),
       ),
       GoRoute(
+        path: PostScreen.routePath,
+        name: PostScreen.routeName,
+        builder: (context, state) =>
+            PostScreen(postId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: NotificationsScreen.routePath,
+        name: NotificationsScreen.routeName,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: SearchScreen.routePath,
+        name: SearchScreen.routeName,
+        builder: (context, state) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: DirectoryScreen.routePath,
+        name: DirectoryScreen.routeName,
+        builder: (context, state) => const DirectoryScreen(),
+      ),
+      GoRoute(
+        path: MyProfileScreen.routePath,
+        name: MyProfileScreen.routeName,
+        builder: (context, state) => const MyProfileScreen(),
+      ),
+      GoRoute(
+        path: ReportsScreen.routePath,
+        name: ReportsScreen.routeName,
+        builder: (context, state) => const ReportsScreen(),
+      ),
+      GoRoute(
         path: SecurityScreen.routePath,
         name: SecurityScreen.routeName,
         builder: (context, state) => const SecurityScreen(),
       ),
     ],
   );
+  // Clicking a Windows toast opens the post / group it is about.
+  ref.read(desktopNotifierProvider).onOpen = (target) {
+    final postId = target['post_id'] as String?;
+    final groupId = target['group_id'] as String?;
+    if (postId != null) {
+      router.push(PostScreen.pathFor(postId));
+    } else if (groupId != null) {
+      router.push(GroupScreen.pathFor(groupId));
+    } else {
+      router.push(NotificationsScreen.routePath);
+    }
+  };
   ref.onDispose(() {
     router.dispose();
     refresh.dispose();

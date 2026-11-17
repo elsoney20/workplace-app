@@ -16,6 +16,7 @@ import 'package:workplace_app/features/feed/domain/person.dart';
 import 'package:workplace_app/features/feed/presentation/animated_emoji.dart';
 
 import '../feed/fake_feed_repository.dart';
+import '../phase6/fakes.dart';
 
 class _SignedIn extends AuthStatusController {
   @override
@@ -154,7 +155,11 @@ class FakeChatRepository extends ChatRepository {
   }
 
   @override
-  Future<void> sendTyping(RealtimeChannel channel, String profileId, String name) async {}
+  Future<void> sendTyping(
+    RealtimeChannel channel,
+    String profileId,
+    String name,
+  ) async {}
 
   @override
   Future<void> stop(RealtimeChannel channel) async {}
@@ -177,6 +182,7 @@ Future<FakeChatRepository> _pump(
         sharedPreferencesProvider.overrideWithValue(prefs),
         authStatusProvider.overrideWith(_SignedIn.new),
         myProfileProvider.overrideWith((ref) async => _me),
+        ...phase6Overrides(),
         feedRepositoryProvider.overrideWithValue(FakeFeedRepository()),
         chatRepositoryProvider.overrideWithValue(chat),
       ],

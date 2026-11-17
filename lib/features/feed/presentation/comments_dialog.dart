@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../auth/domain/my_profile.dart';
+import '../../moderation/presentation/report_dialog.dart';
 import '../data/feed_repository.dart';
 import '../domain/feed_post.dart';
 import '../domain/post_comment.dart';
@@ -379,6 +380,15 @@ class _CommentTile extends StatelessWidget {
                       TextButton(
                         onPressed: () => state._delete(comment),
                         child: Text(l10n.delete),
+                      ),
+                    if (!mine)
+                      TextButton(
+                        onPressed: () => showReportDialog(
+                          context,
+                          state.ref,
+                          commentId: comment.id,
+                        ),
+                        child: Text(l10n.reportAction),
                       ),
                     ReactionSummary(
                       reactions: comment.reactions,

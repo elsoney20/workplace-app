@@ -417,5 +417,110 @@
   "editingMessage": "Editing message",
   "chatPrivacyNote": "Only the people in this chat can read it.",
   "today": "Today",
-  "yesterday": "Yesterday"
+  "yesterday": "Yesterday",
+  "notificationsTitle": "Notifications",
+  "markAllRead": "Mark all as read",
+  "notificationsEmpty": "No notifications yet.",
+  "notifMention": "{name} mentioned you",
+  "@notifMention": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifComment": "{name} commented on your post",
+  "@notifComment": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReply": "{name} replied to your comment",
+  "@notifReply": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReaction": "{name} reacted to your post",
+  "@notifReaction": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAnnouncement": "New announcement from {name}",
+  "@notifAnnouncement": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupInvite": "{name} added you to a group",
+  "@notifGroupInvite": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReportUpdate": "Your report was reviewed",
+  "notifMessage": "New message from {name}",
+  "@notifMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "someone": "Someone",
+  "postTitle": "Post",
+  "postNotFound": "This post was deleted or you can't see it.",
+  "searchTitle": "Search",
+  "searchHint": "Search people, posts and your messages",
+  "searchPeople": "People",
+  "searchPosts": "Posts",
+  "searchMessages": "Messages",
+  "searchTypeMore": "Type at least 2 letters.",
+  "noResults": "No results.",
+  "directoryTitle": "Employee directory",
+  "allDepartments": "All departments",
+  "phoneHidden": "Phone hidden",
+  "callOrCopy": "Copy number",
+  "myProfile": "My profile",
+  "bioLabel": "About me",
+  "phoneVisibilityLabel": "Who can see my phone number",
+  "visibilityEveryone": "Everyone",
+  "visibilityManagers": "Managers and admins only",
+  "visibilityNobody": "Nobody",
+  "changePhoto": "Change photo",
+  "removePhoto": "Remove photo",
+  "reportAction": "Report",
+  "reportTitle": "Report this content",
+  "reportReasonHint": "Why? (only admins / moderators will see this)",
+  "reportSent": "Thanks. A moderator will review it.",
+  "reportsTitle": "Reports",
+  "reportsSubtitle": "Review content people reported.",
+  "reportsEmpty": "No open reports.",
+  "reportOpen": "Open",
+  "reportResolved": "Resolved",
+  "reportDismissed": "Dismissed",
+  "reportedBy": "Reported by {name}",
+  "@reportedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAndResolve": "Delete content",
+  "dismissReport": "Keep (dismiss)",
+  "openPost": "Open post",
+  "contentDeleted": "Content deleted",
+  "profileTitle": "Profile"
 }

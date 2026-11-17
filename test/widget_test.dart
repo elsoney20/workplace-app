@@ -16,6 +16,7 @@ import 'package:workplace_app/features/home/presentation/home_screen.dart';
 
 import 'feed/fake_feed_repository.dart';
 import 'chat/chat_test.dart' show FakeChatRepository;
+import 'phase6/fakes.dart';
 
 class _FakeAuthStatus extends AuthStatusController {
   _FakeAuthStatus(this.initial);
@@ -51,6 +52,7 @@ Future<void> _pumpApp(
         authStatusProvider.overrideWith(() => _FakeAuthStatus(status)),
         myProfileProvider.overrideWith((ref) async => profile),
         chatRepositoryProvider.overrideWithValue(FakeChatRepository()),
+        ...phase6Overrides(),
         feedRepositoryProvider.overrideWithValue(FakeFeedRepository()),
       ],
       child: const WorkplaceApp(),

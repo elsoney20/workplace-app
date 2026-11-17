@@ -16,6 +16,7 @@ import 'package:workplace_app/features/groups/domain/work_group.dart';
 
 import 'feed/fake_feed_repository.dart';
 import 'chat/chat_test.dart' show FakeChatRepository;
+import 'phase6/fakes.dart';
 
 class _SignedIn extends AuthStatusController {
   @override
@@ -116,6 +117,7 @@ Future<FakeGroupsRepository> _pump(
         authStatusProvider.overrideWith(_SignedIn.new),
         myProfileProvider.overrideWith((ref) async => me),
         chatRepositoryProvider.overrideWithValue(FakeChatRepository()),
+        ...phase6Overrides(),
         feedRepositoryProvider.overrideWithValue(FakeFeedRepository()),
         groupsRepositoryProvider.overrideWithValue(groups),
       ],
