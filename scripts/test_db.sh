@@ -12,4 +12,7 @@ for f in migrations/*.sql; do
   echo "Applying $f"
   psql -v ON_ERROR_STOP=1 -q -d "$DB" -f "$f"
 done
-psql -v ON_ERROR_STOP=1 -q -d "$DB" -f tests/01_rls_test.sql
+for f in tests/0[1-9]_*_test.sql; do
+  echo "Running $f"
+  psql -v ON_ERROR_STOP=1 -q -d "$DB" -f "$f"
+done

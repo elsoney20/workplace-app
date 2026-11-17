@@ -4,7 +4,9 @@
   "@homeWelcome": {
     "description": "Main greeting on the home screen.",
     "placeholders": {
-      "appName": { "type": "String" }
+      "appName": {
+        "type": "String"
+      }
     }
   },
   "homeSubtitle": "Phase 0 setup is working. This screen will be replaced in later phases.",
@@ -21,7 +23,9 @@
   "directionCurrent": "Current direction: {direction}",
   "@directionCurrent": {
     "placeholders": {
-      "direction": { "type": "String" }
+      "direction": {
+        "type": "String"
+      }
     }
   },
   "directionLtr": "Left to right",
@@ -29,5 +33,122 @@
   "inputTestHint": "Type here to test input",
   "themeSectionTitle": "Brand colors",
   "primaryColorLabel": "Primary",
-  "secondaryColorLabel": "Secondary"
+  "secondaryColorLabel": "Secondary",
+  "loginTitle": "Sign in",
+  "loginSubtitle": "Enter the mobile number your company registered for you.",
+  "phoneLabel": "Mobile number",
+  "phoneHint": "e.g. 01001234567",
+  "phoneInvalid": "Please enter a valid mobile number.",
+  "sendCode": "Send code",
+  "codeTitle": "Enter the code",
+  "codeSentTo": "We sent a 6-digit code to {phone}",
+  "@codeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "codeLabel": "6-digit code",
+  "codeInvalid": "The code must be 6 digits.",
+  "verify": "Verify",
+  "changeNumber": "Change number",
+  "resendCode": "Resend code",
+  "resendIn": "Resend in {seconds}s",
+  "@resendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "errorNotRegistered": "This number is not registered. Please contact your administrator.",
+  "errorNotActive": "Your account is not active. Please contact your administrator.",
+  "errorWrongCode": "The code is wrong or has expired. Try again.",
+  "errorTooMany": "Too many attempts. Please wait a minute and try again.",
+  "errorNetwork": "No connection. Check your internet and try again.",
+  "errorUnknown": "Something went wrong. Please try again.",
+  "secondFactorTitle": "Authenticator code",
+  "secondFactorSubtitle": "Open your authenticator app (Google or Microsoft Authenticator) and enter the 6-digit code for this app.",
+  "signOut": "Sign out",
+  "homeHello": "Hello, {name}",
+  "@homeHello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeComingSoon": "The company feed, groups and chat are coming in the next phases.",
+  "roleAdmin": "Admin",
+  "roleManager": "Manager",
+  "roleEmployee": "Employee",
+  "adminPanel": "Admin panel",
+  "adminPanelSubtitle": "Add employees, edit their details or deactivate them.",
+  "securityTitle": "Login security",
+  "securitySubtitle": "Add an authenticator app as a second lock.",
+  "accountNotActiveTitle": "Account not active",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "save": "Save",
+  "loading": "Loading…",
+  "notAllowed": "Only admins can open this page.",
+  "employeesTab": "Employees",
+  "departmentsTab": "Departments",
+  "addEmployee": "Add employee",
+  "editEmployee": "Edit employee",
+  "searchEmployees": "Search by name or number",
+  "filterAll": "All",
+  "filterActive": "Active",
+  "filterInactive": "Deactivated",
+  "fullNameLabel": "Full name",
+  "jobTitleLabel": "Job title",
+  "departmentLabel": "Department",
+  "noDepartment": "No department",
+  "roleLabel": "Role",
+  "fieldRequired": "Required",
+  "statusActive": "Active",
+  "statusInactive": "Deactivated",
+  "notLoggedInYet": "Has not logged in yet",
+  "deactivateTitle": "Deactivate {name}?",
+  "@deactivateTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deactivateBody": "They will lose access immediately, on every device. You can reactivate them later.",
+  "deactivate": "Deactivate",
+  "reactivate": "Reactivate",
+  "phoneChangeWarning": "Changing the number signs the employee out. They will log in again with the new number.",
+  "errorDuplicatePhone": "This number is already registered to another employee.",
+  "errorSelfChange": "You can't change your own role, number or status.",
+  "employeesEmpty": "No employees found.",
+  "employeeCount": "{count} employees",
+  "@employeeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addDepartment": "Add department",
+  "editDepartment": "Edit department",
+  "departmentNameAr": "Name in Arabic",
+  "departmentNameEn": "Name in English",
+  "departmentsEmpty": "No departments yet.",
+  "savedMessage": "Saved",
+  "authenticatorOn": "Authenticator app is ON",
+  "authenticatorOff": "Authenticator app is OFF",
+  "authenticatorOnBody": "After the SMS code, you will also be asked for the code from your authenticator app.",
+  "authenticatorOffBody": "Turn it on so that nobody can log in with your number alone.",
+  "authenticatorEnable": "Turn on",
+  "authenticatorDisable": "Turn off",
+  "authenticatorStep1": "1. Install Google Authenticator or Microsoft Authenticator on your phone.",
+  "authenticatorStep2": "2. In the app, tap + and scan this QR code.",
+  "authenticatorManual": "Can't scan? Enter this key instead:",
+  "authenticatorStep3": "3. Enter the 6-digit code the app shows:",
+  "authenticatorDisableConfirm": "Turn off the authenticator app? Your account will be protected by the SMS code only.",
+  "copied": "Copied"
 }

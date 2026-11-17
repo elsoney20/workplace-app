@@ -29,6 +29,19 @@ create function auth.uid() returns uuid language sql stable as $$
 $$;
 grant execute on function auth.uid() to public;
 
+create function auth.jwt() returns jsonb language sql stable as $$
+  select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
+$$;
+grant execute on function auth.jwt() to public;
+
+-- Authenticator-app (TOTP) factors. status is an enum on Supabase.
+create table auth.mfa_factors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  factor_type text not null default 'totp',
+  status text not null default 'unverified'
+);
+
 create table storage.buckets (
   id text primary key,
   name text not null,
