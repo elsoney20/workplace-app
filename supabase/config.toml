@@ -284,7 +284,7 @@ max_frequency = "60s"
 # environment variable when running `supabase config push`.
 # Remove this section when a real SMS/WhatsApp provider is switched on.
 [auth.sms.test_otp]
-OWNER_PHONE_DIGITS = "env(OWNER_TEST_OTP)"
+201065111122 = "env(OWNER_TEST_OTP)"
 
 # Configure logged in session timeouts.
 # [auth.sessions]

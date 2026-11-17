@@ -9,6 +9,8 @@ DB="${TEST_DB_NAME:-workplace_test}"
 psql -v ON_ERROR_STOP=1 -q -d postgres -c "drop database if exists $DB" -c "create database $DB"
 psql -v ON_ERROR_STOP=1 -q -d "$DB" -c "set client_min_messages = error" -f tests/00_supabase_stub.sql
 for f in migrations/*.sql; do
+  # Data-only seeds (e.g. the owner's admin account) are skipped: tests use fixtures.
+  case "$f" in *_seed_*) echo "Skipping $f"; continue ;; esac
   echo "Applying $f"
   psql -v ON_ERROR_STOP=1 -q -d "$DB" -f "$f"
 done
