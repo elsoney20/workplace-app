@@ -150,7 +150,9 @@ bool Win32Window::Create(const std::wstring& title,
 }
 
 bool Win32Window::Show() {
-  return ShowWindow(window_handle_, SW_SHOWNORMAL);
+  // Open maximized: resizing the window during the first busy seconds
+  // crashed the NVIDIA driver on the owner's 4K screen.
+  return ShowWindow(window_handle_, SW_SHOWMAXIMIZED);
 }
 
 // static

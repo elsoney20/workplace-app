@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:material_ui/material_ui.dart';
 import 'package:video_player/video_player.dart';
 
@@ -56,7 +58,11 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
         if (mounted) setState(() => _failed = true);
         return;
       }
-      final c = VideoPlayerController.networkUrl(Uri.parse(url));
+      // Download first, then play the local copy. Streaming straight from
+      // the web made the Windows player block the whole app.
+      final file = await _localCopy(url);
+      if (!mounted) return;
+      final c = VideoPlayerController.file(file);
       await c.initialize().timeout(const Duration(seconds: 20));
       if (!mounted) {
         await c.dispose();
@@ -77,6 +83,28 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
     } catch (_) {
       if (mounted) setState(() => _failed = true);
     }
+  }
+
+  Future<File> _localCopy(String url) async {
+    final path = widget.video.storagePath;
+    final ext = path.contains('.')
+        ? path.substring(path.lastIndexOf('.'))
+        : '.mp4';
+    final dir = Directory(
+      '${Directory.systemTemp.path}${Platform.pathSeparator}g2e_videos',
+    );
+    await dir.create(recursive: true);
+    final file = File(
+      '${dir.path}${Platform.pathSeparator}${path.hashCode.toUnsigned(32)}$ext',
+    );
+    if (await file.exists() && await file.length() > 0) return file;
+    final res = await http
+        .get(Uri.parse(url))
+        .timeout(const Duration(minutes: 2));
+    if (res.statusCode != 200) throw HttpException('video ${res.statusCode}');
+    final part = File('${file.path}.part');
+    await part.writeAsBytes(res.bodyBytes, flush: true);
+    return part.rename(file.path);
   }
 
   void _onTick() {
