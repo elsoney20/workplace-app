@@ -34,6 +34,7 @@ class _DepartmentFormDialogState extends ConsumerState<_DepartmentFormDialog> {
   late final TextEditingController _nameEn = TextEditingController(
     text: widget.department?.nameEn ?? '',
   );
+  late String? _managerId = widget.department?.managerId;
   bool _busy = false;
   String? _error;
 
@@ -58,12 +59,14 @@ class _DepartmentFormDialogState extends ConsumerState<_DepartmentFormDialog> {
         await repository.addDepartment(
           nameAr: _nameAr.text.trim(),
           nameEn: _nameEn.text.trim(),
+          managerId: _managerId,
         );
       } else {
         await repository.updateDepartment(
           department.id,
           nameAr: _nameAr.text.trim(),
           nameEn: _nameEn.text.trim(),
+          managerId: _managerId,
         );
       }
       if (mounted) Navigator.pop(context, true);
@@ -104,6 +107,21 @@ class _DepartmentFormDialogState extends ConsumerState<_DepartmentFormDialog> {
                 textDirection: TextDirection.ltr,
                 decoration: InputDecoration(labelText: l10n.departmentNameEn),
                 validator: required,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String?>(
+                key: const Key('departmentManagerField'),
+                initialValue: _managerId,
+                isExpanded: true,
+                decoration: InputDecoration(labelText: l10n.departmentManager),
+                items: [
+                  DropdownMenuItem(value: null, child: Text(l10n.noManager)),
+                  for (final e
+                      in ref.watch(employeesProvider).value ?? const [])
+                    if (e.isActive || e.id == _managerId)
+                      DropdownMenuItem(value: e.id, child: Text(e.fullName)),
+                ],
+                onChanged: _busy ? null : (v) => setState(() => _managerId = v),
               ),
               if (_error != null)
                 Padding(

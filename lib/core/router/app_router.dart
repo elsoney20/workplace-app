@@ -8,6 +8,8 @@ import '../../features/auth/domain/auth_status.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/second_factor_screen.dart';
 import '../../features/auth/presentation/security_screen.dart';
+import '../../features/groups/presentation/group_screen.dart';
+import '../../features/groups/presentation/groups_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 
 /// App routes. Logged-out users only ever see the login screens.
@@ -54,6 +56,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AdminScreen.routePath,
         name: AdminScreen.routeName,
         builder: (context, state) => const AdminScreen(),
+      ),
+      GoRoute(
+        path: GroupsScreen.routePath,
+        name: GroupsScreen.routeName,
+        builder: (context, state) => const GroupsScreen(),
+      ),
+      GoRoute(
+        path: GroupScreen.routePath,
+        name: GroupScreen.routeName,
+        builder: (context, state) =>
+            GroupScreen(groupId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: SecurityScreen.routePath,

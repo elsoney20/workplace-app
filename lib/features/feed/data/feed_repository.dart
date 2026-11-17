@@ -327,8 +327,8 @@ class FeedRepository {
       .eq('id', commentId);
 
   /// Live updates: calls [onChange] when posts, comments or reactions change.
-  RealtimeChannel watchFeed(void Function() onChange) {
-    final channel = _client.channel('feed-changes');
+  RealtimeChannel watchFeed(void Function() onChange, {String? groupId}) {
+    final channel = _client.channel('feed-changes-${groupId ?? 'company'}');
     for (final table in [
       'posts',
       'comments',

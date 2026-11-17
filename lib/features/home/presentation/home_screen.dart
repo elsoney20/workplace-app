@@ -12,7 +12,9 @@ import '../../auth/application/auth_providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/domain/my_profile.dart';
 import '../../auth/presentation/security_screen.dart';
+import '../../feed/domain/feed_scope.dart';
 import '../../feed/presentation/feed_view.dart';
+import '../../groups/presentation/groups_screen.dart';
 
 /// Home after login: the company feed.
 class HomeScreen extends ConsumerWidget {
@@ -75,6 +77,7 @@ class HomeScreen extends ConsumerWidget {
           child: switch (profile) {
             AsyncData(value: final p?) => FeedView(
               me: p,
+              scope: FeedScope.company(isAdmin: p.isAdmin),
               header: _HomeHeader(profile: p),
             ),
             AsyncError() => Center(
@@ -119,6 +122,12 @@ class _HomeHeader extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
+              _ActionCard(
+                key: const Key('openGroups'),
+                icon: Icons.groups,
+                title: l10n.groupsTitle,
+                onTap: () => context.push(GroupsScreen.routePath),
+              ),
               if (profile.isAdmin)
                 _ActionCard(
                   key: const Key('openAdminPanel'),

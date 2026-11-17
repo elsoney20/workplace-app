@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../../auth/domain/my_profile.dart';
 import '../application/feed_controller.dart';
+import '../domain/feed_scope.dart';
 import 'person_avatar.dart';
 import 'post_card.dart';
 import 'post_composer_dialog.dart';
@@ -11,9 +12,15 @@ import '../domain/person.dart';
 
 /// The company feed: "write a post" box, pinned announcements, then posts.
 class FeedView extends ConsumerStatefulWidget {
-  const FeedView({super.key, required this.me, this.header});
+  const FeedView({
+    super.key,
+    required this.me,
+    required this.scope,
+    this.header,
+  });
 
   final MyProfile me;
+  final FeedScope scope;
 
   /// Shown above the composer (e.g. greeting + shortcuts).
   final Widget? header;
@@ -30,7 +37,9 @@ class _FeedViewState extends ConsumerState<FeedView> {
     super.initState();
     _scroll.addListener(() {
       if (_scroll.position.extentAfter < 600) {
-        ref.read(feedControllerProvider.notifier).loadMore();
+        ref
+            .read(feedControllerProvider(widget.scope.groupId).notifier)
+            .loadMore();
       }
     });
   }
@@ -42,13 +51,15 @@ class _FeedViewState extends ConsumerState<FeedView> {
   }
 
   void _filter(String? tag) {
-    ref.read(hashtagFilterProvider.notifier).set(tag);
+    ref.read(hashtagFilterProvider(widget.scope.groupId).notifier).set(tag);
     if (_scroll.hasClients) _scroll.jumpTo(0);
   }
 
   Future<void> _compose() async {
-    if (await showPostComposer(context, me: widget.me)) {
-      await ref.read(feedControllerProvider.notifier).refresh();
+    if (await showPostComposer(context, me: widget.me, scope: widget.scope)) {
+      await ref
+          .read(feedControllerProvider(widget.scope.groupId).notifier)
+          .refresh();
     }
   }
 
@@ -56,8 +67,8 @@ class _FeedViewState extends ConsumerState<FeedView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final feed = ref.watch(feedControllerProvider);
-    final tag = ref.watch(hashtagFilterProvider);
+    final feed = ref.watch(feedControllerProvider(widget.scope.groupId));
+    final tag = ref.watch(hashtagFilterProvider(widget.scope.groupId));
     final me = Person(
       id: widget.me.id,
       fullName: widget.me.fullName,
@@ -66,39 +77,42 @@ class _FeedViewState extends ConsumerState<FeedView> {
 
     final children = <Widget>[
       ?widget.header,
-      Card(
-        child: InkWell(
-          key: const Key('openComposer'),
-          borderRadius: BorderRadius.circular(12),
-          onTap: _compose,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                PersonAvatar(me),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Text(
-                      l10n.composerPrompt(widget.me.fullName.split(' ').first),
+      if (widget.scope.canPost)
+        Card(
+          child: InkWell(
+            key: const Key('openComposer'),
+            borderRadius: BorderRadius.circular(12),
+            onTap: _compose,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  PersonAvatar(me),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Text(
+                        l10n.composerPrompt(
+                          widget.me.fullName.split(' ').first,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.photo_library_outlined),
-              ],
+                  const SizedBox(width: 8),
+                  const Icon(Icons.photo_library_outlined),
+                ],
+              ),
             ),
           ),
         ),
-      ),
       const SizedBox(height: 8),
       if (tag != null)
         Padding(
@@ -132,6 +146,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
               key: ValueKey('pinned-${p.id}'),
               post: p,
               me: widget.me,
+              scope: widget.scope,
               onHashtag: _filter,
             ),
           );
@@ -154,6 +169,7 @@ class _FeedViewState extends ConsumerState<FeedView> {
               key: ValueKey(p.id),
               post: p,
               me: widget.me,
+              scope: widget.scope,
               onHashtag: _filter,
             ),
           );
@@ -169,8 +185,9 @@ class _FeedViewState extends ConsumerState<FeedView> {
           children.add(
             Center(
               child: TextButton(
-                onPressed: () =>
-                    ref.read(feedControllerProvider.notifier).loadMore(),
+                onPressed: () => ref
+                    .read(feedControllerProvider(widget.scope.groupId).notifier)
+                    .loadMore(),
                 child: Text(l10n.loadMore),
               ),
             ),
@@ -180,7 +197,8 @@ class _FeedViewState extends ConsumerState<FeedView> {
         children.add(
           Center(
             child: TextButton.icon(
-              onPressed: () => ref.invalidate(feedControllerProvider),
+              onPressed: () =>
+                  ref.invalidate(feedControllerProvider(widget.scope.groupId)),
               icon: const Icon(Icons.refresh),
               label: Text('${l10n.errorNetwork}\n${l10n.retry}'),
             ),
@@ -196,7 +214,9 @@ class _FeedViewState extends ConsumerState<FeedView> {
     }
 
     return RefreshIndicator(
-      onRefresh: () => ref.read(feedControllerProvider.notifier).refresh(),
+      onRefresh: () => ref
+          .read(feedControllerProvider(widget.scope.groupId).notifier)
+          .refresh(),
       child: ListView(
         key: const Key('feedList'),
         controller: _scroll,

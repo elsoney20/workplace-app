@@ -50,31 +50,39 @@ class HashtagFilter extends Notifier<String?> {
   void set(String? tag) => state = tag?.replaceFirst('#', '').toLowerCase();
 }
 
-final hashtagFilterProvider = NotifierProvider<HashtagFilter, String?>(
-  HashtagFilter.new,
-);
+/// One filter per feed: `null` = company feed, otherwise a group id.
+final hashtagFilterProvider =
+    NotifierProvider.family<HashtagFilter, String?, String?>(
+      (groupId) => HashtagFilter(),
+    );
 
 /// Company feed: pinned announcements + newest posts, with paging and live
 /// updates.
 class FeedController extends AsyncNotifier<FeedState> {
+  FeedController(this.groupId);
+
+  /// `null` = company feed, otherwise this group's feed.
+  final String? groupId;
   Timer? _debounce;
 
   FeedRepository get _repo => ref.read(feedRepositoryProvider);
 
   @override
   Future<FeedState> build() async {
-    final hashtag = ref.watch(hashtagFilterProvider);
+    final hashtag = ref.watch(hashtagFilterProvider(groupId));
     final repo = ref.watch(feedRepositoryProvider);
 
-    final channel = repo.watchFeed(_scheduleRefresh);
+    final channel = repo.watchFeed(_scheduleRefresh, groupId: groupId);
     ref.onDispose(() {
       _debounce?.cancel();
       unawaited(repo.stopWatching(channel).catchError((_) => 'error'));
     });
 
     final results = await Future.wait([
-      hashtag == null ? repo.fetchPinned() : Future.value(const <FeedPost>[]),
-      repo.fetchFeed(hashtag: hashtag),
+      hashtag == null
+          ? repo.fetchPinned(groupId: groupId)
+          : Future.value(const <FeedPost>[]),
+      repo.fetchFeed(hashtag: hashtag, groupId: groupId),
     ]);
     final page = results[1] as FeedPage;
     return FeedState(
@@ -104,9 +112,9 @@ class FeedController extends AsyncNotifier<FeedState> {
     try {
       final results = await Future.wait([
         current.hashtag == null
-            ? _repo.fetchPinned()
+            ? _repo.fetchPinned(groupId: groupId)
             : Future.value(const <FeedPost>[]),
-        _repo.fetchFeed(hashtag: current.hashtag),
+        _repo.fetchFeed(hashtag: current.hashtag, groupId: groupId),
       ]);
       final page = results[1] as FeedPage;
       final oldest = page.posts.isEmpty ? null : page.posts.last.createdAt;
@@ -138,6 +146,7 @@ class FeedController extends AsyncNotifier<FeedState> {
       final page = await _repo.fetchFeed(
         hashtag: current.hashtag,
         before: current.posts.last.createdAt,
+        groupId: groupId,
       );
       final latest = state.value ?? current;
       final known = latest.posts.map((p) => p.id).toSet();
@@ -189,9 +198,11 @@ class FeedController extends AsyncNotifier<FeedState> {
   }
 }
 
-final feedControllerProvider = AsyncNotifierProvider<FeedController, FeedState>(
-  FeedController.new,
-);
+/// One controller per feed: `null` = company feed, otherwise a group id.
+final feedControllerProvider =
+    AsyncNotifierProvider.family<FeedController, FeedState, String?>(
+      FeedController.new,
+    );
 
 /// Caches signed links to private files and asks for several at once.
 class SignedUrlCache {

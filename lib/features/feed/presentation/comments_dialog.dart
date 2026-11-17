@@ -23,19 +23,31 @@ Future<void> showCommentsDialog(
   BuildContext context, {
   required FeedPost post,
   required MyProfile me,
+  bool canModerate = false,
   void Function(String tag)? onHashtag,
 }) {
   return showDialog<void>(
     context: context,
-    builder: (_) => _CommentsDialog(post: post, me: me, onHashtag: onHashtag),
+    builder: (_) => _CommentsDialog(
+      post: post,
+      me: me,
+      canModerate: canModerate,
+      onHashtag: onHashtag,
+    ),
   );
 }
 
 class _CommentsDialog extends ConsumerStatefulWidget {
-  const _CommentsDialog({required this.post, required this.me, this.onHashtag});
+  const _CommentsDialog({
+    required this.post,
+    required this.me,
+    this.canModerate = false,
+    this.onHashtag,
+  });
 
   final FeedPost post;
   final MyProfile me;
+  final bool canModerate;
   final void Function(String tag)? onHashtag;
 
   @override
@@ -49,8 +61,7 @@ class _CommentsDialogState extends ConsumerState<_CommentsDialog> {
   bool _sending = false;
   String? _error;
 
-  /// Company feed moderators = admins (same rule as the database).
-  bool get _canModerate => widget.me.isAdmin;
+  bool get _canModerate => widget.canModerate;
 
   @override
   void dispose() {

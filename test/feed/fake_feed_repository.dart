@@ -92,7 +92,8 @@ class FakeFeedRepository extends FeedRepository {
   Future<void> markSeen(String postId) async => seen.add(postId);
 
   @override
-  RealtimeChannel watchFeed(void Function() onChange) => _NoopChannel();
+  RealtimeChannel watchFeed(void Function() onChange, {String? groupId}) =>
+      _NoopChannel();
 
   @override
   Future<void> stopWatching(RealtimeChannel channel) async {}

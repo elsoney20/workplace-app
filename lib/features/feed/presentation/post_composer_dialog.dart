@@ -6,6 +6,7 @@ import '../../../core/l10n/generated/app_localizations.dart';
 import '../../auth/domain/my_profile.dart';
 import '../data/feed_repository.dart';
 import '../domain/feed_post.dart';
+import '../domain/feed_scope.dart';
 import '../domain/post_attachment.dart';
 import 'emoji_grid.dart';
 import 'mention_text_field.dart';
@@ -15,20 +16,27 @@ import 'mention_text_field.dart';
 Future<bool> showPostComposer(
   BuildContext context, {
   required MyProfile me,
+  required FeedScope scope,
   FeedPost? editing,
 }) async {
   final saved = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => PostComposerDialog(me: me, editing: editing),
+    builder: (_) => PostComposerDialog(me: me, scope: scope, editing: editing),
   );
   return saved ?? false;
 }
 
 class PostComposerDialog extends ConsumerStatefulWidget {
-  const PostComposerDialog({super.key, required this.me, this.editing});
+  const PostComposerDialog({
+    super.key,
+    required this.me,
+    required this.scope,
+    this.editing,
+  });
 
   final MyProfile me;
+  final FeedScope scope;
   final FeedPost? editing;
 
   @override
@@ -47,8 +55,8 @@ class _PostComposerDialogState extends ConsumerState<PostComposerDialog> {
 
   bool get _isEdit => widget.editing != null;
 
-  /// Company-wide announcements: admins only (same rule as the database).
-  bool get _canAnnounce => widget.me.isAdmin && !_isEdit;
+  /// Announcements: feed moderators only (same rule as the database).
+  bool get _canAnnounce => widget.scope.canModerate && !_isEdit;
 
   @override
   void dispose() {
@@ -108,6 +116,7 @@ class _PostComposerDialogState extends ConsumerState<PostComposerDialog> {
           body: _text.storedText,
           uploads: _uploads,
           announcement: _announcement,
+          groupId: widget.scope.groupId,
           onProgress: (done, total) {
             if (mounted && total > 0) setState(() => _progress = (done, total));
           },

@@ -6,6 +6,7 @@ import '../../auth/domain/my_profile.dart';
 import '../application/feed_controller.dart';
 import '../data/feed_repository.dart';
 import '../domain/feed_post.dart';
+import '../domain/feed_scope.dart';
 import 'animated_emoji.dart';
 import 'attachments_view.dart';
 import 'comments_dialog.dart';
@@ -24,11 +25,13 @@ class PostCard extends ConsumerStatefulWidget {
     super.key,
     required this.post,
     required this.me,
+    required this.scope,
     this.onHashtag,
   });
 
   final FeedPost post;
   final MyProfile me;
+  final FeedScope scope;
   final void Function(String tag)? onHashtag;
 
   @override
@@ -41,8 +44,7 @@ class _PostCardState extends ConsumerState<PostCard> {
   FeedPost get post => widget.post;
   bool get _mine => post.author.id == widget.me.id;
 
-  /// Company feed moderators = admins (same rule as the database).
-  bool get _canModerate => widget.me.isAdmin;
+  bool get _canModerate => widget.scope.canModerate;
 
   @override
   void initState() {
@@ -75,7 +77,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     final emoji = choice is ReactionPicked ? choice.emoji : null;
     try {
       await ref
-          .read(feedControllerProvider.notifier)
+          .read(feedControllerProvider(widget.scope.groupId).notifier)
           .react(post.id, widget.me.id, emoji);
     } catch (_) {
       if (mounted) _snack(AppLocalizations.of(context).errorUnknown);
@@ -88,11 +90,18 @@ class _PostCardState extends ConsumerState<PostCard> {
   Future<void> _onMenu(_MenuAction action) async {
     final l10n = AppLocalizations.of(context);
     final repo = ref.read(feedRepositoryProvider);
-    final feed = ref.read(feedControllerProvider.notifier);
+    final feed = ref.read(
+      feedControllerProvider(widget.scope.groupId).notifier,
+    );
     try {
       switch (action) {
         case _MenuAction.edit:
-          if (await showPostComposer(context, me: widget.me, editing: post)) {
+          if (await showPostComposer(
+            context,
+            me: widget.me,
+            scope: widget.scope,
+            editing: post,
+          )) {
             await feed.refresh();
           }
         case _MenuAction.delete:
@@ -307,8 +316,11 @@ class _PostCardState extends ConsumerState<PostCard> {
       context,
       post: post,
       me: widget.me,
+      canModerate: widget.scope.canModerate,
       onHashtag: widget.onHashtag,
     );
-    await ref.read(feedControllerProvider.notifier).refresh();
+    await ref
+        .read(feedControllerProvider(widget.scope.groupId).notifier)
+        .refresh();
   }
 }
