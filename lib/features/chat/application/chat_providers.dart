@@ -102,11 +102,32 @@ class ChatController extends AsyncNotifier<ChatState> {
     // Reload when something changes in my chats.
     ref.listen(chatInboxProvider, (_, _) => unawaited(refresh()));
     final messages = await repo.fetchMessages(conversationId);
-    unawaited(repo.markSeen(conversationId).catchError((_) {}));
+    _markSeenIfNew(messages);
     return ChatState(
       messages: messages,
       hasMore: messages.length == ChatRepository.pageSize,
     );
+  }
+
+  /// Newest message from someone else that I already marked as seen.
+  DateTime? _seenUpTo;
+
+  /// Marks the chat seen only when a message from someone else arrived
+  /// since the last time. Marking seen writes to the database, which sends
+  /// a live update, which refreshes this chat: calling it on every refresh
+  /// made an endless loop that froze the app.
+  void _markSeenIfNew(List<ChatMessage> messages) {
+    final me = ref.read(myProfileProvider).value?.id;
+    DateTime? newest;
+    for (final m in messages) {
+      if (m.pending || m.sender.id == me) continue;
+      if (newest == null || m.createdAt.isAfter(newest)) newest = m.createdAt;
+    }
+    if (newest == null) return;
+    final upTo = _seenUpTo;
+    if (upTo != null && !newest.isAfter(upTo)) return;
+    _seenUpTo = newest;
+    unawaited(_repo.markSeen(conversationId).catchError((_) {}));
   }
 
   Future<void> refresh() async {
@@ -132,9 +153,7 @@ class ChatController extends AsyncNotifier<ChatState> {
               : latest.length == ChatRepository.pageSize,
         ),
       );
-      if (latest.any((m) => m.seenCount < m.recipientCount)) {
-        unawaited(_repo.markSeen(conversationId).catchError((_) {}));
-      }
+      _markSeenIfNew(latest);
     } catch (_) {
       // Keep what we have.
     }

@@ -89,9 +89,14 @@ class FakeChatRepository extends ChatRepository {
   @override
   Future<void> markDelivered(String conversationId) async {}
 
+  /// Live inbox callback; marking seen fires it like the real database does.
+  void Function()? inbox;
+
   @override
-  Future<void> markSeen(String conversationId) async =>
-      seenCalls.add(conversationId);
+  Future<void> markSeen(String conversationId) async {
+    seenCalls.add(conversationId);
+    inbox?.call();
+  }
 
   @override
   Future<List<ChatMessage>> fetchMessages(
@@ -137,7 +142,10 @@ class FakeChatRepository extends ChatRepository {
   ) async => reactions.add((messageId, '-$emoji'));
 
   @override
-  RealtimeChannel watchInbox(void Function() onChange) => _NoopChannel();
+  RealtimeChannel watchInbox(void Function() onChange) {
+    inbox = onChange;
+    return _NoopChannel();
+  }
 
   @override
   RealtimeChannel typingChannel(
@@ -229,6 +237,32 @@ void main() {
       expect(find.text('Online'), findsOneWidget);
     },
   );
+
+  testWidgets('marking seen does not loop when my message is still unseen', (
+    tester,
+  ) async {
+    final chat = await _pump(tester);
+    chat.messages.insert(
+      0,
+      ChatMessage(
+        id: 'm3',
+        conversationId: 'c1',
+        sender: const Person(id: 'me', fullName: 'Owner'),
+        body: 'Are you there?',
+        createdAt: DateTime.now(),
+        recipientCount: 1,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('openChats')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-c1')).last);
+    // Several live updates arrive; each one refreshes the chat.
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    await tester.pumpAndSettle();
+    expect(chat.seenCalls.length, 1);
+  });
 
   testWidgets('sending a message with Enter', (tester) async {
     final chat = await _pump(tester);
