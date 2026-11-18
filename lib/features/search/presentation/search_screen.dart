@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
-import '../../chat/presentation/chat_screen.dart';
+import '../../chat/presentation/chat_drawer.dart';
 import '../../directory/data/directory_repository.dart';
 import '../../directory/presentation/directory_screen.dart';
 import '../../feed/domain/rich_text.dart';
@@ -135,8 +135,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       hit: h,
                       onTap: h.contextId == null
                           ? null
-                          : () =>
-                                context.push(ChatScreen.pathFor(h.contextId!)),
+                          : () => ref
+                                .read(chatDrawerProvider.notifier)
+                                .openChat(h.contextId!),
                     ),
                   ),
                 ],

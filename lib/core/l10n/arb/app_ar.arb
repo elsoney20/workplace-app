@@ -315,5 +315,15 @@
   "fullScreen": "ملء الشاشة",
   "exitFullScreen": "خروج من ملء الشاشة",
   "demoPhotoCredits": "حقوق الصور",
-  "demoPhotoCreditsBody": "صور الديمو من Wikimedia Commons برخص مجانية (CC BY و CC BY-SA وملكية عامة)."
+  "demoPhotoCreditsBody": "صور الديمو من Wikimedia Commons برخص مجانية (CC BY و CC BY-SA وملكية عامة).",
+  "close": "إغلاق",
+  "sharePost": "مشاركة",
+  "sharePostTitle": "مشاركة المنشور",
+  "shareNoteHint": "اكتب رسالة معاه (اختياري)",
+  "copyPostText": "نسخ نص المنشور",
+  "postCopied": "اتنسخ نص المنشور",
+  "sendToChat": "ابعته في محادثة",
+  "sent": "اتبعت",
+  "openChat": "افتح المحادثة",
+  "sharedPost": "منشور"
 }

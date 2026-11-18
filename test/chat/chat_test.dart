@@ -13,7 +13,10 @@ import 'package:workplace_app/features/chat/domain/chat_message.dart';
 import 'package:workplace_app/features/chat/domain/conversation.dart';
 import 'package:workplace_app/features/feed/data/feed_repository.dart';
 import 'package:workplace_app/features/feed/domain/person.dart';
+import 'package:workplace_app/features/chat/presentation/chat_drawer.dart';
+import 'package:workplace_app/features/feed/domain/feed_post.dart';
 import 'package:workplace_app/features/feed/presentation/animated_emoji.dart';
+import 'package:workplace_app/features/feed/presentation/share_post.dart';
 
 import '../feed/fake_feed_repository.dart';
 import '../phase6/fakes.dart';
@@ -176,6 +179,7 @@ class FakeChatRepository extends ChatRepository {
 Future<FakeChatRepository> _pump(
   WidgetTester tester, {
   String locale = 'en',
+  FakeFeedRepository? feed,
 }) async {
   AnimatedEmoji.enabled = false;
   tester.view.physicalSize = const Size(1200, 1600);
@@ -191,7 +195,7 @@ Future<FakeChatRepository> _pump(
         authStatusProvider.overrideWith(_SignedIn.new),
         myProfileProvider.overrideWith((ref) async => _me),
         ...phase6Overrides(),
-        feedRepositoryProvider.overrideWithValue(FakeFeedRepository()),
+        feedRepositoryProvider.overrideWithValue(feed ?? FakeFeedRepository()),
         chatRepositoryProvider.overrideWithValue(chat),
       ],
       child: const WorkplaceApp(),
@@ -299,5 +303,58 @@ void main() {
     await tester.tap(find.byKey(const Key('openChats')));
     await tester.pumpAndSettle();
     expect(find.text('الدردشة'), findsOneWidget);
+  });
+
+  testWidgets('chats open in a side panel that grows when a chat opens', (
+    tester,
+  ) async {
+    await _pump(tester);
+    tester.view.physicalSize = const Size(1700, 1200);
+    await tester.pumpAndSettle();
+    final drawer = find.byKey(const Key('chatDrawer'));
+    expect(tester.getSize(drawer).width, 0);
+
+    await tester.tap(find.byKey(const Key('openChats')));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(drawer).width, ChatDrawer.listWidth);
+    // Still on the home page: no new page was opened.
+    expect(find.byKey(const Key('feedList')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('chat-c1')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(drawer).width,
+      ChatDrawer.listWidth + ChatDrawer.chatWidth,
+    );
+    expect(find.byKey(const Key('messageField')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('openChats')));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(drawer).width, 0);
+  });
+
+  testWidgets('a post can be shared into a chat and shows as a card', (
+    tester,
+  ) async {
+    const postId = '00000000-0000-0000-0000-0000000000f1';
+    final feed = FakeFeedRepository(
+      posts: [
+        FeedPost(
+          id: postId,
+          author: const Person(id: 'sara', fullName: 'Sara Ali'),
+          body: 'New PS5 stock arrived',
+          createdAt: DateTime.now(),
+        ),
+      ],
+    );
+    final chat = await _pump(tester, feed: feed);
+
+    await tester.tap(find.byKey(const Key('shareButton-$postId')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('shareNote')), 'Look!');
+    await tester.tap(find.byKey(const Key('shareTo-c1')));
+    await tester.pumpAndSettle();
+    expect(chat.sent, ['Look!\n[[post:$postId]]']);
+    expect(SharedPostLink.split(chat.sent.single), ('Look!', postId));
   });
 }

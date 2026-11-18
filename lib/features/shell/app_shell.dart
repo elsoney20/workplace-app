@@ -13,6 +13,7 @@ import '../auth/application/auth_providers.dart';
 import '../auth/data/auth_repository.dart';
 import '../auth/presentation/security_screen.dart';
 import '../chat/application/chat_providers.dart';
+import '../chat/presentation/chat_drawer.dart';
 import '../chat/presentation/chats_screen.dart';
 import '../directory/presentation/directory_screen.dart';
 import '../groups/presentation/groups_screen.dart';
@@ -74,7 +75,11 @@ class AppShell extends ConsumerWidget {
     final unreadChats = ref.watch(unreadChatsProvider);
     final unreadNotes = ref.watch(unreadNotificationsProvider).value ?? 0;
 
+    final drawerOpen = ref.watch(chatDrawerProvider.select((s) => s.open));
+    final drawer = ref.read(chatDrawerProvider.notifier);
+
     void go(String path) {
+      drawer.close();
       if (location != path) context.go(path);
     }
 
@@ -110,7 +115,7 @@ class AppShell extends ConsumerWidget {
           label: l10n.chatsTitle,
           color: _chats,
           badge: unreadChats,
-          onTap: () => go(ChatsScreen.routePath),
+          onTap: drawer.toggle,
         ),
       ),
       (
@@ -214,8 +219,8 @@ class AppShell extends ConsumerWidget {
         selected = i;
       }
     }
-    // A single chat opened from the chats list keeps "Chats" lit.
-    if (selected == null && location.startsWith('/chats')) {
+    // The chat panel is open, or a chat page: "Chats" is lit.
+    if (drawerOpen || (selected == null && location.startsWith('/chats'))) {
       selected = top.indexWhere((e) => e.$1 == ChatsScreen.routePath);
     }
 
@@ -224,30 +229,33 @@ class AppShell extends ConsumerWidget {
       body: BrandBackdrop(
         pattern: true,
         child: SafeArea(
-          child: Row(
-            children: [
-              LiquidRail(
-                header: Tooltip(
-                  message: BrandConfig.localizedAppName(
-                    Localizations.localeOf(context),
+          child: LayoutBuilder(
+            builder: (context, box) => Row(
+              children: [
+                LiquidRail(
+                  header: Tooltip(
+                    message: BrandConfig.localizedAppName(
+                      Localizations.localeOf(context),
+                    ),
+                    child: const BrandLogo(size: 40),
                   ),
-                  child: const BrandLogo(size: 40),
+                  top: [for (final e in top) e.$2],
+                  bottom: [for (final e in bottom) e.$2],
+                  extra: const [LanguageMenuButton()],
+                  selected: selected,
                 ),
-                top: [for (final e in top) e.$2],
-                bottom: [for (final e in bottom) e.$2],
-                extra: const [LanguageMenuButton()],
-                selected: selected,
-              ),
-              Expanded(
-                // Pages are see-through so the animated background shows.
-                child: Theme(
-                  data: theme.copyWith(
-                    scaffoldBackgroundColor: Colors.transparent,
+                ChatDrawer(available: box.maxWidth - LiquidRail.width),
+                Expanded(
+                  // Pages are see-through so the animated background shows.
+                  child: Theme(
+                    data: theme.copyWith(
+                      scaffoldBackgroundColor: Colors.transparent,
+                    ),
+                    child: child,
                   ),
-                  child: child,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

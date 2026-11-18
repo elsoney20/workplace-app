@@ -68,7 +68,7 @@ class _FadeSlideInState extends State<FadeSlideIn>
 
 /// Lifts its child slightly when the mouse is over it (desktop feel).
 class HoverLift extends StatefulWidget {
-  const HoverLift({super.key, required this.child, this.lift = 2});
+  const HoverLift({super.key, required this.child, this.lift = 3});
 
   final Widget child;
   final double lift;
@@ -85,11 +85,15 @@ class _HoverLiftState extends State<HoverLift> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 300),
+      // A few pixels (not a share of the card's height: tall posts used to
+      // jump over the post above).
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(end: _hover ? -widget.lift : 0),
+        duration: const Duration(milliseconds: 220),
         curve: kSmooth,
-        offset: Offset(0, _hover ? -widget.lift / 100 : 0),
         child: RepaintBoundary(child: widget.child),
+        builder: (context, dy, child) =>
+            Transform.translate(offset: Offset(0, dy), child: child),
       ),
     );
   }

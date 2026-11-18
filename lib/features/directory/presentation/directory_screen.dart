@@ -1,7 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mime/mime.dart';
 
@@ -9,7 +8,7 @@ import '../../../core/l10n/generated/app_localizations.dart';
 import '../../admin/presentation/admin_errors.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../chat/data/chat_repository.dart';
-import '../../chat/presentation/chat_screen.dart';
+import '../../chat/presentation/chat_drawer.dart';
 import '../../feed/domain/person.dart';
 import '../../feed/presentation/person_avatar.dart';
 import '../data/directory_repository.dart';
@@ -198,12 +197,12 @@ Future<void> showPersonCard(BuildContext context, DirectoryEntry e) {
                 icon: const Icon(Icons.chat_bubble_outline),
                 label: Text(l10n.sendMessage),
                 onPressed: () async {
-                  final router = GoRouter.of(context);
+                  final drawer = ref.read(chatDrawerProvider.notifier);
                   final id = await ref
                       .read(chatRepositoryProvider)
                       .openDirect(e.person.id);
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
-                  router.push(ChatScreen.pathFor(id));
+                  drawer.openChat(id);
                 },
               ),
           ],

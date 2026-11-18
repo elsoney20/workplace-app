@@ -19,6 +19,7 @@ import '../../feed/presentation/feed_format.dart';
 import '../../feed/presentation/person_avatar.dart';
 import '../../feed/presentation/reaction_picker.dart';
 import '../../feed/presentation/rich_body.dart';
+import '../../feed/presentation/share_post.dart';
 import '../application/chat_providers.dart';
 import '../data/chat_repository.dart';
 import '../domain/chat_message.dart';
@@ -735,11 +736,21 @@ class _MessageBubble extends StatelessWidget {
                   ),
                 ),
               ),
-            if (m.body.isNotEmpty)
-              RichBody(
-                m.body,
-                style: theme.textTheme.bodyLarge?.copyWith(color: textColor),
-              ),
+            if (SharedPostLink.split(m.body) case (
+              final text,
+              final postId,
+            )) ...[
+              if (text.isNotEmpty)
+                RichBody(
+                  text,
+                  style: theme.textTheme.bodyLarge?.copyWith(color: textColor),
+                ),
+              if (postId != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: SharedPostPreview(postId: postId),
+                ),
+            ],
           ],
           const SizedBox(height: 2),
           Row(

@@ -145,12 +145,15 @@ class _FeedViewState extends ConsumerState<FeedView> {
           children.add(
             FadeSlideIn(
               key: ValueKey('anim-pinned-${p.id}'),
-              child: PostCard(
-                key: ValueKey('pinned-${p.id}'),
-                post: p,
-                me: widget.me,
-                scope: widget.scope,
-                onHashtag: _filter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: _postGap),
+                child: PostCard(
+                  key: ValueKey('pinned-${p.id}'),
+                  post: p,
+                  me: widget.me,
+                  scope: widget.scope,
+                  onHashtag: _filter,
+                ),
               ),
             ),
           );
@@ -172,13 +175,16 @@ class _FeedViewState extends ConsumerState<FeedView> {
             FadeSlideIn(
               key: ValueKey('anim-${p.id}'),
               index: i,
-              child: HoverLift(
-                child: PostCard(
-                  key: ValueKey(p.id),
-                  post: p,
-                  me: widget.me,
-                  scope: widget.scope,
-                  onHashtag: _filter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: _postGap),
+                child: HoverLift(
+                  child: PostCard(
+                    key: ValueKey(p.id),
+                    post: p,
+                    me: widget.me,
+                    scope: widget.scope,
+                    onHashtag: _filter,
+                  ),
                 ),
               ),
             ),
@@ -267,3 +273,6 @@ class _TrendingRow extends ConsumerWidget {
     );
   }
 }
+
+/// Space between two posts in the feed.
+const double _postGap = 16;

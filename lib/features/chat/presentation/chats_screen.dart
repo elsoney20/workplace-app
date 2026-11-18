@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/l10n/generated/app_localizations.dart';
@@ -9,10 +8,11 @@ import '../../feed/domain/person.dart';
 import '../../feed/domain/rich_text.dart';
 import '../../feed/presentation/feed_format.dart';
 import '../../feed/presentation/person_avatar.dart';
+import '../../feed/presentation/share_post.dart';
+import 'chat_drawer.dart';
 import '../application/chat_providers.dart';
 import '../data/chat_repository.dart';
 import '../domain/conversation.dart';
-import 'chat_screen.dart';
 
 /// List of my chats.
 class ChatsScreen extends ConsumerWidget {
@@ -72,7 +72,7 @@ class ChatsScreen extends ConsumerWidget {
     );
     if (id != null && context.mounted) {
       ref.invalidate(conversationsProvider);
-      context.push(ChatScreen.pathFor(id));
+      ref.read(chatDrawerProvider.notifier).openChat(id);
     }
   }
 }
@@ -107,7 +107,7 @@ class ConversationTile extends ConsumerWidget {
       final text = last.deleted
           ? l10n.messageDeleted
           : last.body.isNotEmpty
-          ? plainText(last.body)
+          ? plainText(SharedPostLink.preview(last.body, l10n))
           : (last.hasAttachment ? '📎 ${l10n.attachment}' : '');
       preview = c.isGroup || last.senderId == me?.id ? '$who: $text' : text;
     }
@@ -192,7 +192,8 @@ class ConversationTile extends ConsumerWidget {
       selected: selected,
       selectedTileColor: theme.colorScheme.primary.withValues(alpha: .10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      onTap: onOpen ?? () => context.push(ChatScreen.pathFor(c.id)),
+      onTap:
+          onOpen ?? () => ref.read(chatDrawerProvider.notifier).openChat(c.id),
     );
   }
 }

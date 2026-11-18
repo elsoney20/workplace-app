@@ -33,6 +33,10 @@ class FakeFeedRepository extends FeedRepository {
   }
 
   @override
+  Future<FeedPost?> fetchPost(String postId) async =>
+      [...pinned, ...posts].where((p) => p.id == postId).firstOrNull;
+
+  @override
   Future<List<FeedPost>> fetchPinned({String? groupId}) async => pinned;
 
   @override

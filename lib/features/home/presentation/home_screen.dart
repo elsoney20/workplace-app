@@ -7,42 +7,31 @@ import '../../../core/widgets/motion.dart';
 import '../../admin/presentation/admin_errors.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/my_profile.dart';
-import '../../chat/application/chat_providers.dart';
-import '../../chat/presentation/chat_screen.dart';
-import '../../chat/presentation/chats_screen.dart';
 import '../../feed/domain/feed_scope.dart';
 import '../../feed/presentation/feed_view.dart';
 import '../../search/presentation/search_screen.dart';
 
-/// Home after login (design #4 "G2E Classic"): the company feed in the
-/// middle and a chat panel on wide screens. The rail lives in AppShell.
+/// Home after login: the company feed. The rail and the chat panel live in
+/// AppShell.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   static const String routePath = '/';
   static const String routeName = 'home';
 
-  /// The chat panel only appears when the window is at least this wide.
-  static const double chatPanelMinWidth = 1200;
-
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  /// Conversation open in the side panel, if any.
-  String? _openChat;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final profile = ref.watch(myProfileProvider);
 
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, box) {
-          final wide = box.maxWidth >= HomeScreen.chatPanelMinWidth;
-          final p = profile.value;
+      body: Builder(
+        builder: (context) {
           return Row(
             children: [
               Expanded(
@@ -67,12 +56,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
               ),
-              if (wide && p != null)
-                _ChatPanel(
-                  openChat: _openChat,
-                  onOpen: (id) => setState(() => _openChat = id),
-                  onClose: () => setState(() => _openChat = null),
-                ),
             ],
           );
         },
@@ -145,101 +128,6 @@ class _HomeHeader extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Right-hand chat panel (wide windows only): the inbox, or one open chat.
-class _ChatPanel extends ConsumerWidget {
-  const _ChatPanel({
-    required this.openChat,
-    required this.onOpen,
-    required this.onClose,
-  });
-
-  final String? openChat;
-  final ValueChanged<String> onOpen;
-  final VoidCallback onClose;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final chats = ref.watch(conversationsProvider);
-
-    final Widget body;
-    if (openChat case final id?) {
-      body = ChatScreen(
-        key: ValueKey('panel-$id'),
-        conversationId: id,
-        onClose: onClose,
-      );
-    } else {
-      body = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 8, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.chatsTitle,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => context.push(ChatsScreen.routePath),
-                  child: Text(l10n.seeAll),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: switch (chats) {
-              AsyncData(:final value) when value.isEmpty => Center(
-                child: Text(l10n.pickAChat, textAlign: TextAlign.center),
-              ),
-              AsyncData(:final value) => ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: value.length,
-                itemBuilder: (context, i) => FadeSlideIn(
-                  index: i,
-                  child: ConversationTile(
-                    conversation: value[i],
-                    onOpen: () => onOpen(value[i].id),
-                  ),
-                ),
-              ),
-              AsyncError() => Center(
-                child: TextButton.icon(
-                  onPressed: () => ref.invalidate(conversationsProvider),
-                  icon: const Icon(Icons.refresh),
-                  label: Text(l10n.retry),
-                ),
-              ),
-              _ => const Center(child: CircularProgressIndicator()),
-            },
-          ),
-        ],
-      );
-    }
-
-    return Material(
-      color: theme.colorScheme.surfaceContainerLow.withValues(alpha: .72),
-      shape: BorderDirectional(
-        start: BorderSide(color: theme.colorScheme.outlineVariant),
-      ),
-      child: SizedBox(
-        width: 380,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 280),
-          switchInCurve: kSmooth,
-          child: body,
         ),
       ),
     );

@@ -20,6 +20,7 @@ import 'person_avatar.dart';
 import 'post_composer_dialog.dart';
 import 'reaction_picker.dart';
 import 'rich_body.dart';
+import 'share_post.dart';
 
 /// Announcements this app session already reported as seen.
 final Set<String> _reportedSeen = {};
@@ -323,6 +324,14 @@ class _PostCardState extends ConsumerState<PostCard> {
                         : Icons.mode_comment_outlined,
                   ),
                   label: Text(l10n.comment),
+                ),
+              ),
+              Expanded(
+                child: TextButton.icon(
+                  key: Key('shareButton-${post.id}'),
+                  onPressed: () => showSharePostDialog(context, post),
+                  icon: const Icon(Icons.send_rounded),
+                  label: Text(l10n.sharePost),
                 ),
               ),
             ],

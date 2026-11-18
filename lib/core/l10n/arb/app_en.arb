@@ -560,5 +560,15 @@
   "fullScreen": "Full screen",
   "exitFullScreen": "Exit full screen",
   "demoPhotoCredits": "Photo credits",
-  "demoPhotoCreditsBody": "Demo photos are from Wikimedia Commons under free licenses (CC BY, CC BY-SA, public domain)."
+  "demoPhotoCreditsBody": "Demo photos are from Wikimedia Commons under free licenses (CC BY, CC BY-SA, public domain).",
+  "close": "Close",
+  "sharePost": "Share",
+  "sharePostTitle": "Share post",
+  "shareNoteHint": "Add a message (optional)",
+  "copyPostText": "Copy post text",
+  "postCopied": "Post text copied",
+  "sendToChat": "Send it in a chat",
+  "sent": "Sent",
+  "openChat": "Open chat",
+  "sharedPost": "Shared post"
 }
