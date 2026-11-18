@@ -42,7 +42,13 @@ class FrameDiagnostics {
 
     if (kDebugMode) {
       debugOnRebuildDirtyWidget = (element, builtOnce) {
-        final k = element.widget.runtimeType.toString();
+        final w = element.widget;
+        var k = w.runtimeType.toString();
+        if (w is Image) {
+          // Which picture: file name without the signed-link token.
+          final d = w.image.toString().split('?').first;
+          k = 'Image(${d.length > 90 ? d.substring(d.length - 90) : d})';
+        }
         rebuilt[k] = (rebuilt[k] ?? 0) + 1;
       };
       debugOnProfilePaint = (renderObject) {
