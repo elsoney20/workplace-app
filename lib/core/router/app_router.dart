@@ -26,12 +26,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   // Tells the router to re-run [redirect] when the login state changes.
   final refresh = ValueNotifier<AuthStatus>(ref.read(authStatusProvider));
   ref.listen(authStatusProvider, (_, next) => refresh.value = next);
+  final hold = ValueNotifier<bool>(ref.read(loginHoldProvider));
+  ref.listen(loginHoldProvider, (_, next) => hold.value = next);
 
   final router = GoRouter(
     initialLocation: HomeScreen.routePath,
-    refreshListenable: refresh,
+    refreshListenable: Listenable.merge([refresh, hold]),
     redirect: (context, state) {
       final location = state.matchedLocation;
+      // The login screen is finishing its check-mark animation.
+      if (hold.value && location == LoginScreen.routePath) return null;
       return switch (refresh.value) {
         AuthStatus.signedOut =>
           location == LoginScreen.routePath ? null : LoginScreen.routePath,

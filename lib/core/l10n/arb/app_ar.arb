@@ -325,5 +325,7 @@
   "sendToChat": "ابعته في محادثة",
   "sent": "اتبعت",
   "openChat": "افتح المحادثة",
-  "sharedPost": "منشور"
+  "sharedPost": "منشور",
+  "codeChecking": "بنتأكد من الكود…",
+  "codeVerified": "تمام، الكود صح"
 }

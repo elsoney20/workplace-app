@@ -570,5 +570,7 @@
   "sendToChat": "Send it in a chat",
   "sent": "Sent",
   "openChat": "Open chat",
-  "sharedPost": "Shared post"
+  "sharedPost": "Shared post",
+  "codeChecking": "Checking the code…",
+  "codeVerified": "Code is correct"
 }
