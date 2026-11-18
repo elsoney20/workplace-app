@@ -20,6 +20,7 @@ import '../../features/notifications/application/desktop_notifier.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/search/presentation/search_screen.dart';
 import '../../features/shell/app_shell.dart';
+import '../../features/shell/branch_switcher.dart';
 
 /// App routes. Logged-out users only ever see the login screens.
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -61,77 +62,122 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SecondFactorScreen(),
       ),
       // Every signed-in page sits inside the shell (rail + background).
-      ShellRoute(
-        builder: (context, state, child) =>
-            AppShell(location: state.uri.path, child: child),
-        routes: [
-          GoRoute(
-            path: HomeScreen.routePath,
-            name: HomeScreen.routeName,
-            builder: (context, state) => const HomeScreen(),
+      // Each rail destination is its own branch that stays alive: switching
+      // is instant and a page keeps its scroll position and data.
+      // Keep the branch order in sync with AppShell.branchRoots.
+      StatefulShellRoute(
+        builder: (context, state, shell) =>
+            AppShell(location: state.uri.path, shell: shell, child: shell),
+        navigatorContainerBuilder: (context, shell, children) =>
+            BranchSwitcher(index: shell.currentIndex, children: children),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: HomeScreen.routePath,
+                name: HomeScreen.routeName,
+                builder: (context, state) => const HomeScreen(),
+              ),
+              GoRoute(
+                path: PostScreen.routePath,
+                name: PostScreen.routeName,
+                builder: (context, state) =>
+                    PostScreen(postId: state.pathParameters['id']!),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AdminScreen.routePath,
-            name: AdminScreen.routeName,
-            builder: (context, state) => const AdminScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: GroupsScreen.routePath,
+                name: GroupsScreen.routeName,
+                builder: (context, state) => const GroupsScreen(),
+              ),
+              GoRoute(
+                path: GroupScreen.routePath,
+                name: GroupScreen.routeName,
+                builder: (context, state) =>
+                    GroupScreen(groupId: state.pathParameters['id']!),
+              ),
+            ],
           ),
-          GoRoute(
-            path: ChatsScreen.routePath,
-            name: ChatsScreen.routeName,
-            builder: (context, state) => const ChatsScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: ChatsScreen.routePath,
+                name: ChatsScreen.routeName,
+                builder: (context, state) => const ChatsScreen(),
+              ),
+              GoRoute(
+                path: ChatScreen.routePath,
+                name: ChatScreen.routeName,
+                builder: (context, state) =>
+                    ChatScreen(conversationId: state.pathParameters['id']!),
+              ),
+            ],
           ),
-          GoRoute(
-            path: ChatScreen.routePath,
-            name: ChatScreen.routeName,
-            builder: (context, state) =>
-                ChatScreen(conversationId: state.pathParameters['id']!),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: NotificationsScreen.routePath,
+                name: NotificationsScreen.routeName,
+                builder: (context, state) => const NotificationsScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: GroupsScreen.routePath,
-            name: GroupsScreen.routeName,
-            builder: (context, state) => const GroupsScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: SearchScreen.routePath,
+                name: SearchScreen.routeName,
+                builder: (context, state) => const SearchScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: GroupScreen.routePath,
-            name: GroupScreen.routeName,
-            builder: (context, state) =>
-                GroupScreen(groupId: state.pathParameters['id']!),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: DirectoryScreen.routePath,
+                name: DirectoryScreen.routeName,
+                builder: (context, state) => const DirectoryScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: PostScreen.routePath,
-            name: PostScreen.routeName,
-            builder: (context, state) =>
-                PostScreen(postId: state.pathParameters['id']!),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: ReportsScreen.routePath,
+                name: ReportsScreen.routeName,
+                builder: (context, state) => const ReportsScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: NotificationsScreen.routePath,
-            name: NotificationsScreen.routeName,
-            builder: (context, state) => const NotificationsScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AdminScreen.routePath,
+                name: AdminScreen.routeName,
+                builder: (context, state) => const AdminScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: SearchScreen.routePath,
-            name: SearchScreen.routeName,
-            builder: (context, state) => const SearchScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: SecurityScreen.routePath,
+                name: SecurityScreen.routeName,
+                builder: (context, state) => const SecurityScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: DirectoryScreen.routePath,
-            name: DirectoryScreen.routeName,
-            builder: (context, state) => const DirectoryScreen(),
-          ),
-          GoRoute(
-            path: MyProfileScreen.routePath,
-            name: MyProfileScreen.routeName,
-            builder: (context, state) => const MyProfileScreen(),
-          ),
-          GoRoute(
-            path: ReportsScreen.routePath,
-            name: ReportsScreen.routeName,
-            builder: (context, state) => const ReportsScreen(),
-          ),
-          GoRoute(
-            path: SecurityScreen.routePath,
-            name: SecurityScreen.routeName,
-            builder: (context, state) => const SecurityScreen(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: MyProfileScreen.routePath,
+                name: MyProfileScreen.routeName,
+                builder: (context, state) => const MyProfileScreen(),
+              ),
+            ],
           ),
         ],
       ),

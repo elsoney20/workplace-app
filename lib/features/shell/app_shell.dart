@@ -26,11 +26,33 @@ import '../search/presentation/search_screen.dart';
 /// Everything after login lives inside this frame: the liquid icon rail on
 /// the side, the animated brand background, and the current page.
 class AppShell extends ConsumerWidget {
-  const AppShell({super.key, required this.location, required this.child});
+  const AppShell({
+    super.key,
+    required this.location,
+    required this.child,
+    this.shell,
+  });
 
   /// Current route path, used to light up the right rail item.
   final String location;
   final Widget child;
+
+  /// Switches between the rail pages, which all stay alive.
+  final StatefulNavigationShell? shell;
+
+  /// Root path of each rail page, in the router's branch order.
+  static const List<String> branchRoots = [
+    HomeScreen.routePath,
+    GroupsScreen.routePath,
+    ChatsScreen.routePath,
+    NotificationsScreen.routePath,
+    SearchScreen.routePath,
+    DirectoryScreen.routePath,
+    ReportsScreen.routePath,
+    AdminScreen.routePath,
+    SecurityScreen.routePath,
+    MyProfileScreen.routePath,
+  ];
 
   // Liquid colours per item (Games2Egypt palette + PlayStation blue).
   static const _home = Color(0xFFA9C25A);
@@ -80,7 +102,14 @@ class AppShell extends ConsumerWidget {
 
     void go(String path) {
       drawer.close();
-      if (location != path) context.go(path);
+      final branch = branchRoots.indexOf(path);
+      final shell = this.shell;
+      if (shell != null && branch >= 0) {
+        // Tapping the page you are on goes back to its start.
+        shell.goBranch(branch, initialLocation: branch == shell.currentIndex);
+      } else if (location != path) {
+        context.go(path);
+      }
     }
 
     final canSeeReports = p != null && (p.isAdmin || p.role == 'manager');

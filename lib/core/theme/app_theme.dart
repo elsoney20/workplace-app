@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../config/brand_config.dart';
+import '../widgets/quick_page_transitions.dart';
 
 /// Games2Egypt look: dark by default (like the website), with a light
 /// "daylight" version for people who prefer it.
@@ -96,11 +97,11 @@ abstract final class AppTheme {
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
-          TargetPlatform.macOS: FadeForwardsPageTransitionsBuilder(),
-          TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
-          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-          TargetPlatform.iOS: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: QuickPageTransitionsBuilder(),
+          TargetPlatform.macOS: QuickPageTransitionsBuilder(),
+          TargetPlatform.linux: QuickPageTransitionsBuilder(),
+          TargetPlatform.android: QuickPageTransitionsBuilder(),
+          TargetPlatform.iOS: QuickPageTransitionsBuilder(),
         },
       ),
       appBarTheme: AppBarTheme(

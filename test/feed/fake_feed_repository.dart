@@ -17,12 +17,16 @@ class FakeFeedRepository extends FeedRepository {
   final List<(String, String?)> reactions = [];
   final List<String> seen = [];
 
+  /// How many times the company feed was loaded from the start.
+  int feedLoads = 0;
+
   @override
   Future<FeedPage> fetchFeed({
     String? hashtag,
     DateTime? before,
     String? groupId,
   }) async {
+    if (groupId == null && hashtag == null && before == null) feedLoads++;
     final list = hashtag == null
         ? posts
         : [

@@ -175,6 +175,20 @@ void main() {
     expect(find.byKey(const Key('homeEndColumn')), findsNothing);
   });
 
+  testWidgets('switching rail pages keeps the feed (no reload)', (
+    tester,
+  ) async {
+    final (feed, _) = await _pump(tester);
+    expect(feed.feedLoads, 1);
+    await tester.tap(find.byKey(const Key('openGroups')));
+    await tester.pumpAndSettle();
+    expect(find.text('Lunch on Thursday is on us'), findsNothing);
+    await tester.tap(find.byKey(const Key('openHome')));
+    await tester.pumpAndSettle();
+    expect(find.text('Lunch on Thursday is on us'), findsOneWidget);
+    expect(feed.feedLoads, 1, reason: 'the home page stayed alive');
+  });
+
   testWidgets('I am going to an event', (tester) async {
     final (_, engagement) = await _pump(tester);
     await tester.tap(find.byKey(const Key('going-e1')));
