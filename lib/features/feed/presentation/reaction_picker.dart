@@ -170,7 +170,7 @@ class ReactionSummary extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final e in reactions.keys.take(3))
-              AnimatedEmoji(e, size: size),
+              AnimatedEmoji(e, size: size, onHover: true),
             const SizedBox(width: 4),
             Text('$total', style: Theme.of(context).textTheme.bodyMedium),
           ],
