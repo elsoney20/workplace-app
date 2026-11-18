@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -29,8 +29,12 @@ class GamingPattern extends StatefulWidget {
 }
 
 class _GamingPatternState extends State<GamingPattern>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late final Ticker _ticker = createTicker(_tick);
+    with WidgetsBindingObserver {
+  /// A plain timer (not a ticker): a ticker asks for a new frame on every
+  /// screen refresh (240 a second on a 240 Hz screen) even when the
+  /// pattern has not moved; this only asks ~24 times a second.
+  Timer? _timer;
+  final Stopwatch _watch = Stopwatch();
   final ValueNotifier<Offset> _shift = ValueNotifier(Offset.zero);
   Duration _last = Duration.zero;
 
@@ -55,21 +59,32 @@ class _GamingPatternState extends State<GamingPattern>
     return false;
   }
 
+  bool get _running => _timer?.isActive ?? false;
+
   void _wake() {
     _lastInput = DateTime.now();
-    if (FadeSlideIn.enabled && _foreground && !_ticker.isActive) {
+    if (FadeSlideIn.enabled && _foreground && !_running) {
       _last = Duration.zero;
-      _ticker.start();
+      _watch
+        ..reset()
+        ..start();
+      _timer = Timer.periodic(const Duration(milliseconds: 42), (_) => _tick());
     }
   }
 
-  void _tick(Duration elapsed) {
+  void _stop() {
+    _timer?.cancel();
+    _timer = null;
+    _watch.stop();
+  }
+
+  void _tick() {
     if (DateTime.now().difference(_lastInput) > GamingPattern.idleAfter) {
-      _ticker.stop();
+      _stop();
       return;
     }
+    final elapsed = _watch.elapsed;
     final step = elapsed - _last;
-    if (step < const Duration(milliseconds: 41)) return;
     _last = elapsed;
     _clock += step.inMicroseconds / 1e6;
     final t = _clock;
@@ -86,8 +101,8 @@ class _GamingPatternState extends State<GamingPattern>
     _foreground = state == AppLifecycleState.resumed;
     if (_foreground) {
       _wake();
-    } else if (_ticker.isActive) {
-      _ticker.stop();
+    } else {
+      _stop();
     }
   }
 
@@ -96,7 +111,7 @@ class _GamingPatternState extends State<GamingPattern>
     WidgetsBinding.instance.removeObserver(this);
     GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);
     HardwareKeyboard.instance.removeHandler(_onKey);
-    _ticker.dispose();
+    _stop();
     _shift.dispose();
     super.dispose();
   }
