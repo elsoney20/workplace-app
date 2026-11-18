@@ -1,4 +1,5 @@
 import 'person.dart';
+import 'poll.dart';
 import 'post_attachment.dart';
 
 /// One post as returned by `public.get_feed()`.
@@ -20,6 +21,7 @@ class FeedPost {
     this.seenCount = 0,
     this.seenByMe = false,
     this.audienceCount,
+    this.poll,
   });
 
   factory FeedPost.fromJson(Map<String, dynamic> json) => FeedPost(
@@ -67,6 +69,9 @@ class FeedPost {
   final bool seenByMe;
   final int? audienceCount;
 
+  /// A quick poll inside the post (loaded separately, see get_polls).
+  final Poll? poll;
+
   int get reactionTotal => reactions.values.fold(0, (a, b) => a + b);
 
   /// Local, optimistic change of my reaction (null = remove).
@@ -98,8 +103,29 @@ class FeedPost {
       seenCount: seenCount,
       seenByMe: seenByMe,
       audienceCount: audienceCount,
+      poll: poll,
     );
   }
+
+  FeedPost withPoll(Poll? poll) => FeedPost(
+    id: id,
+    groupId: groupId,
+    author: author,
+    body: body,
+    isAnnouncement: isAnnouncement,
+    isPinned: isPinned,
+    commentsLocked: commentsLocked,
+    createdAt: createdAt,
+    editedAt: editedAt,
+    attachments: attachments,
+    commentCount: commentCount,
+    reactions: reactions,
+    myReaction: myReaction,
+    seenCount: seenCount,
+    seenByMe: seenByMe,
+    audienceCount: audienceCount,
+    poll: poll,
+  );
 }
 
 Map<String, int> reactionCountsFromJson(Object? value) {

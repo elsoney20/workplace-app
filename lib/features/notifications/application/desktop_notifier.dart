@@ -67,6 +67,7 @@ class DesktopNotifier {
     'announcement' => 'New announcement / إعلان جديد',
     'group_invite' => 'Added to a group / اتضفت لجروب',
     'report_update' => 'Report reviewed / البلاغ اتراجع',
+    'kudos' => 'Someone thanked you 🙌 / حد شكرك 🙌',
     _ => 'New notification / إشعار جديد',
   };
 }

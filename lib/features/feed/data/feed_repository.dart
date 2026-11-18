@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../domain/feed_post.dart';
 import '../domain/person.dart';
+import '../domain/poll.dart';
 import '../domain/post_attachment.dart';
 import '../domain/post_comment.dart';
 import 'media_compressor.dart';
@@ -76,17 +77,49 @@ class FeedRepository {
     final posts = rows
         .map((r) => FeedPost.fromJson(Map<String, dynamic>.from(r as Map)))
         .toList();
-    return FeedPage(posts, hasMore: posts.length == pageSize);
+    return FeedPage(await _withPolls(posts), hasMore: posts.length == pageSize);
   }
+
+  /// Adds the polls of these posts. A failure leaves the posts as they are,
+  /// so the feed never breaks because of a poll.
+  Future<List<FeedPost>> _withPolls(List<FeedPost> posts) async {
+    if (posts.isEmpty) return posts;
+    try {
+      final rows = await _client.rpc<List<dynamic>>(
+        'get_polls',
+        params: {
+          'p_post_ids': [for (final p in posts) p.id],
+        },
+      );
+      if (rows.isEmpty) return posts;
+      final polls = {
+        for (final r in rows.cast<Map>())
+          r['post_id'] as String: Poll.fromJson(
+            Map<String, dynamic>.from(r['poll'] as Map),
+          ),
+      };
+      return [for (final p in posts) p.withPoll(polls[p.id] ?? p.poll)];
+    } catch (_) {
+      return posts;
+    }
+  }
+
+  /// My vote on a poll (null takes it back).
+  Future<void> votePoll(String postId, String? optionId) => _client.rpc<void>(
+    'vote_poll',
+    params: {'p_post_id': postId, 'p_option_id': optionId},
+  );
 
   Future<List<FeedPost>> fetchPinned({String? groupId}) async {
     final rows = await _client.rpc<List<dynamic>>(
       'get_feed',
       params: {'p_group_id': groupId, 'p_pinned': true, 'p_limit': 10},
     );
-    return rows
-        .map((r) => FeedPost.fromJson(Map<String, dynamic>.from(r as Map)))
-        .toList();
+    return _withPolls(
+      rows
+          .map((r) => FeedPost.fromJson(Map<String, dynamic>.from(r as Map)))
+          .toList(),
+    );
   }
 
   Future<FeedPost?> fetchPost(String postId) async {
@@ -95,7 +128,10 @@ class FeedRepository {
       params: {'p_post_id': postId},
     );
     if (rows.isEmpty) return null;
-    return FeedPost.fromJson(Map<String, dynamic>.from(rows.first as Map));
+    final post = FeedPost.fromJson(
+      Map<String, dynamic>.from(rows.first as Map),
+    );
+    return (await _withPolls([post])).first;
   }
 
   Future<List<PostComment>> fetchComments(String postId) async {
@@ -171,6 +207,7 @@ class FeedRepository {
     required List<PendingUpload> uploads,
     bool announcement = false,
     String? groupId,
+    ({String question, List<String> options})? poll,
     void Function(int done, int total)? onProgress,
   }) async {
     final row = await _client
@@ -193,6 +230,16 @@ class FeedRepository {
         uploaded.add(await _uploadAttachment(postId, uploads[i], i));
       }
       onProgress?.call(uploads.length, uploads.length);
+      if (poll != null) {
+        await _client.rpc<void>(
+          'create_poll',
+          params: {
+            'p_post_id': postId,
+            'p_question': poll.question,
+            'p_options': poll.options,
+          },
+        );
+      }
     } catch (_) {
       if (uploaded.isNotEmpty) {
         await _storage.remove(uploaded).catchError((_) => <FileObject>[]);

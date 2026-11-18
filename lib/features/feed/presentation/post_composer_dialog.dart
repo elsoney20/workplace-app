@@ -49,6 +49,10 @@ class _PostComposerDialogState extends ConsumerState<PostComposerDialog> {
   );
   final List<PendingUpload> _uploads = [];
   bool _announcement = false;
+
+  /// Quick poll: null = no poll.
+  TextEditingController? _pollQuestion;
+  final List<TextEditingController> _pollOptions = [];
   bool _saving = false;
   (int, int)? _progress;
   String? _error;
@@ -61,7 +65,27 @@ class _PostComposerDialogState extends ConsumerState<PostComposerDialog> {
   @override
   void dispose() {
     _text.dispose();
+    _pollQuestion?.dispose();
+    for (final c in _pollOptions) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  void _togglePoll() {
+    setState(() {
+      if (_pollQuestion == null) {
+        _pollQuestion = TextEditingController();
+        _pollOptions.addAll([TextEditingController(), TextEditingController()]);
+      } else {
+        _pollQuestion!.dispose();
+        _pollQuestion = null;
+        for (final c in _pollOptions) {
+          c.dispose();
+        }
+        _pollOptions.clear();
+      }
+    });
   }
 
   Future<void> _pick({required bool media}) async {
@@ -98,7 +122,16 @@ class _PostComposerDialogState extends ConsumerState<PostComposerDialog> {
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
-    if (_text.isEmpty && _uploads.isEmpty) {
+    final question = _pollQuestion?.text.trim();
+    final options = [
+      for (final c in _pollOptions)
+        if (c.text.trim().isNotEmpty) c.text.trim(),
+    ];
+    if (question != null && (question.isEmpty || options.length < 2)) {
+      setState(() => _error = l10n.pollNeedsChoices);
+      return;
+    }
+    if (_text.isEmpty && _uploads.isEmpty && question == null) {
       setState(() => _error = l10n.emptyPost);
       return;
     }
@@ -117,6 +150,9 @@ class _PostComposerDialogState extends ConsumerState<PostComposerDialog> {
           uploads: _uploads,
           announcement: _announcement,
           groupId: widget.scope.groupId,
+          poll: question == null
+              ? null
+              : (question: question, options: options),
           onProgress: (done, total) {
             if (mounted && total > 0) setState(() => _progress = (done, total));
           },
@@ -198,8 +234,70 @@ class _PostComposerDialogState extends ConsumerState<PostComposerDialog> {
                       icon: const Icon(Icons.emoji_emotions_outlined),
                       label: Text(l10n.addEmoji),
                     ),
+                    TextButton.icon(
+                      key: const Key('addPollButton'),
+                      onPressed: _saving ? null : _togglePoll,
+                      icon: Icon(
+                        _pollQuestion == null
+                            ? Icons.poll_outlined
+                            : Icons.close_rounded,
+                      ),
+                      label: Text(
+                        _pollQuestion == null ? l10n.addPoll : l10n.removePoll,
+                      ),
+                    ),
                   ],
                 ),
+                if (_pollQuestion case final q?) ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('pollQuestion'),
+                    controller: q,
+                    maxLength: 300,
+                    decoration: InputDecoration(
+                      labelText: l10n.pollQuestion,
+                      prefixIcon: const Icon(Icons.poll_outlined),
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                      counterText: '',
+                    ),
+                  ),
+                  for (final (i, c) in _pollOptions.indexed)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: TextField(
+                        key: Key('pollOption-$i'),
+                        controller: c,
+                        maxLength: 120,
+                        decoration: InputDecoration(
+                          labelText: l10n.pollChoice(i + 1),
+                          border: const OutlineInputBorder(),
+                          isDense: true,
+                          counterText: '',
+                          suffixIcon: _pollOptions.length > 2
+                              ? IconButton(
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed: () => setState(
+                                    () => _pollOptions.removeAt(i).dispose(),
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  if (_pollOptions.length < 6)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        key: const Key('addPollChoice'),
+                        onPressed: () => setState(
+                          () => _pollOptions.add(TextEditingController()),
+                        ),
+                        icon: const Icon(Icons.add_rounded),
+                        label: Text(l10n.pollAddChoice),
+                      ),
+                    ),
+                ],
               ] else
                 Align(
                   alignment: AlignmentDirectional.centerStart,

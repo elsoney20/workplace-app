@@ -17,6 +17,7 @@ import 'comments_dialog.dart';
 import 'feed_format.dart';
 import 'people_dialogs.dart';
 import 'person_avatar.dart';
+import 'poll_view.dart';
 import 'post_composer_dialog.dart';
 import 'reaction_picker.dart';
 import 'rich_body.dart';
@@ -254,6 +255,11 @@ class _PostCardState extends ConsumerState<PostCard> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: RichBody(post.body, onHashtag: widget.onHashtag),
+            ),
+          if (post.poll case final poll?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: PollView(postId: post.id, poll: poll),
             ),
           if (post.attachments.isNotEmpty)
             Padding(

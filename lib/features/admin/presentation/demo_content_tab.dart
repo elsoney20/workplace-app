@@ -6,6 +6,7 @@ import '../../../core/l10n/generated/app_localizations.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import '../../feed/application/feed_controller.dart';
 import '../../chat/application/chat_providers.dart';
+import '../../engagement/application/engagement_providers.dart';
 import '../../feed/data/feed_repository.dart';
 import '../application/demo_script.dart';
 
@@ -62,6 +63,8 @@ class _DemoContentTabState extends ConsumerState<DemoContentTab> {
       // Start clean, so loading twice simply refreshes the demo.
       await client.rpc<void>('remove_demo_content');
       await client.rpc<void>('seed_demo_content');
+      // Birthdays, events, kudos and a poll.
+      await client.rpc<void>('seed_demo_extras');
       // Photo / video posts: made as me (only a post's author may upload
       // its files), then handed to a demo colleague with its comments.
       for (final post in demoPosts) {
@@ -88,6 +91,7 @@ class _DemoContentTabState extends ConsumerState<DemoContentTab> {
         );
       }
       ref.invalidate(conversationsProvider);
+      ref.invalidate(homeSidebarProvider);
     }, l10n.demoLoaded);
   }
 

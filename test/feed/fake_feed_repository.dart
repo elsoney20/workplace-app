@@ -60,6 +60,13 @@ class FakeFeedRepository extends FeedRepository {
     ),
   ];
 
+  final List<({String question, List<String> options})> createdPolls = [];
+  final List<(String, String?)> votes = [];
+
+  @override
+  Future<void> votePoll(String postId, String? optionId) async =>
+      votes.add((postId, optionId));
+
   @override
   Future<String> createPost({
     required String authorId,
@@ -67,9 +74,11 @@ class FakeFeedRepository extends FeedRepository {
     required List<PendingUpload> uploads,
     bool announcement = false,
     String? groupId,
+    ({String question, List<String> options})? poll,
     void Function(int done, int total)? onProgress,
   }) async {
     created.add(body);
+    if (poll != null) createdPolls.add(poll);
     posts.insert(
       0,
       FeedPost(

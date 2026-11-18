@@ -21,6 +21,7 @@ String notificationTitle(AppLocalizations l10n, AppNotification n) {
     'announcement' => l10n.notifAnnouncement(name),
     'group_invite' => l10n.notifGroupInvite(name),
     'report_update' => l10n.notifReportUpdate,
+    'kudos' => l10n.notifKudos(name),
     _ => l10n.notificationsTitle,
   };
 }
@@ -32,6 +33,7 @@ IconData _iconFor(String type) => switch (type) {
   'announcement' => Icons.campaign_outlined,
   'group_invite' => Icons.group_add_outlined,
   'report_update' => Icons.flag_outlined,
+  'kudos' => Icons.volunteer_activism_outlined,
   _ => Icons.notifications_outlined,
 };
 

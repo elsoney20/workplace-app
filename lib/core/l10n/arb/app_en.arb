@@ -572,5 +572,133 @@
   "openChat": "Open chat",
   "sharedPost": "Shared post",
   "codeChecking": "Checking the code…",
-  "codeVerified": "Code is correct"
+  "codeVerified": "Code is correct",
+  "pollVotes": "{count, plural, =0{No votes yet} =1{1 vote} other{{count} votes}}",
+  "@pollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollClosed": "Poll closed",
+  "pollTapToVote": "Tap a choice to vote",
+  "addPoll": "Poll",
+  "removePoll": "Remove poll",
+  "pollQuestion": "Question",
+  "pollChoice": "Choice {n}",
+  "@pollChoice": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "pollAddChoice": "Add a choice",
+  "pollNeedsChoices": "Write the question and at least 2 choices.",
+  "sideEvents": "Upcoming events",
+  "sideNoEvents": "No events yet.",
+  "newEvent": "New event",
+  "eventGoing": "Going",
+  "eventJoin": "I'm going",
+  "eventGoingCount": "{count} going",
+  "@eventGoingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventTitle": "Title",
+  "eventLocation": "Where",
+  "eventDescription": "Details",
+  "eventDuration": "Duration",
+  "hoursCount": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@hoursCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventNeedsTitle": "Give the event a title.",
+  "eventKindEvent": "Event",
+  "eventKindTournament": "Tournament",
+  "eventKindCelebration": "Celebration",
+  "eventKindTraining": "Training",
+  "eventKindMeeting": "Meeting",
+  "sideCelebrations": "Birthdays & anniversaries",
+  "sideNoCelebrations": "Nothing this week.",
+  "birthdayToday": "Birthday today!",
+  "birthdayTomorrow": "Birthday tomorrow",
+  "birthdayIn": "Birthday in {count} days",
+  "@birthdayIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "anniversaryYears": "{count, plural, =1{1 year with us} other{{count} years with us}}",
+  "@anniversaryYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sayCongrats": "Say congrats",
+  "addMyBirthday": "Add my birthday",
+  "birthdaySaved": "Saved. Only the day and month are shown.",
+  "sideNewJoiners": "New colleagues",
+  "sayWelcome": "Welcome",
+  "sideKudos": "Kudos",
+  "sendKudos": "Thank a colleague",
+  "sideNoKudos": "Be the first to thank someone.",
+  "kudosFrom": "from {name}",
+  "@kudosFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "kudosWho": "Who do you want to thank?",
+  "kudosForWhat": "For what?",
+  "kudosMessageHint": "A few words (optional)",
+  "kudosPickSomeone": "Pick a colleague first.",
+  "kudosTooMany": "That's enough thanks for today 😄 Try tomorrow.",
+  "badgeThanks": "Thanks",
+  "badgeTeamwork": "Teamwork",
+  "badgeHelpful": "Helpful",
+  "badgeMvp": "MVP",
+  "badgeCreative": "Creative",
+  "badgeSpeed": "Lightning fast",
+  "sideHeroes": "Heroes of the week",
+  "sideNoHeroes": "Thank a colleague and they show up here.",
+  "heroKudosCount": "{count} 🙌",
+  "@heroKudosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sideOnline": "Online now ({count})",
+  "@sideOnline": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sideNoOnline": "Nobody else is online right now.",
+  "notifKudos": "{name} thanked you 🙌",
+  "@notifKudos": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

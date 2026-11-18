@@ -7,6 +7,7 @@ import '../../../core/widgets/motion.dart';
 import '../../admin/presentation/admin_errors.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/domain/my_profile.dart';
+import '../../engagement/presentation/home_side_columns.dart';
 import '../../feed/domain/feed_scope.dart';
 import '../../feed/presentation/feed_view.dart';
 import '../../search/presentation/search_screen.dart';
@@ -29,32 +30,69 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = AppLocalizations.of(context);
     final profile = ref.watch(myProfileProvider);
 
+    final feed = ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 720),
+      child: switch (profile) {
+        AsyncData(value: final p?) => FeedView(
+          me: p,
+          scope: FeedScope.company(isAdmin: p.isAdmin),
+          header: _HomeHeader(profile: p),
+        ),
+        AsyncError() => Center(
+          child: TextButton.icon(
+            onPressed: () => ref.invalidate(myProfileProvider),
+            icon: const Icon(Icons.refresh),
+            label: Text('${l10n.errorNetwork}\n${l10n.retry}'),
+          ),
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
+    );
+
     return Scaffold(
-      body: Builder(
-        builder: (context) {
+      body: LayoutBuilder(
+        builder: (context, box) {
+          // Wide screens: cards on both sides of the feed; medium: one
+          // column on the end side; narrow: the feed alone.
+          const side = HomeSideColumn.width;
+          const gap = 28.0;
+          final w = box.maxWidth;
+          final both = w >= 720 + 2 * (side + gap) + 48;
+          final one = !both && w >= 720 + side + gap + 32;
+          if (!both && !one) return Center(child: feed);
           return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 720),
-                    child: switch (profile) {
-                      AsyncData(value: final p?) => FeedView(
-                        me: p,
-                        scope: FeedScope.company(isAdmin: p.isAdmin),
-                        header: _HomeHeader(profile: p),
-                      ),
-                      AsyncError() => Center(
-                        child: TextButton.icon(
-                          onPressed: () => ref.invalidate(myProfileProvider),
-                          icon: const Icon(Icons.refresh),
-                          label: Text('${l10n.errorNetwork}\n${l10n.retry}'),
-                        ),
-                      ),
-                      _ => const Center(child: CircularProgressIndicator()),
-                    },
-                  ),
+              if (both) ...[
+                const HomeSideColumn(
+                  key: Key('homeStartColumn'),
+                  sections: [
+                    SideSection.events,
+                    SideSection.celebrations,
+                    SideSection.newJoiners,
+                  ],
                 ),
+                const SizedBox(width: gap),
+              ],
+              Flexible(child: feed),
+              const SizedBox(width: gap),
+              HomeSideColumn(
+                key: const Key('homeEndColumn'),
+                sections: both
+                    ? const [
+                        SideSection.kudos,
+                        SideSection.heroes,
+                        SideSection.online,
+                      ]
+                    : const [
+                        SideSection.events,
+                        SideSection.kudos,
+                        SideSection.celebrations,
+                        SideSection.heroes,
+                        SideSection.online,
+                        SideSection.newJoiners,
+                      ],
               ),
             ],
           );
