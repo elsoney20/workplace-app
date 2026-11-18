@@ -26,6 +26,8 @@ class FrameDiagnostics {
     var frames = 0;
     var buildUs = 0;
     var rasterUs = 0;
+    var worstUs = 0;
+    var slow = 0;
     final rebuilt = <String, int>{};
     final painted = <String, int>{};
     final errors = <String>[];
@@ -79,6 +81,14 @@ class FrameDiagnostics {
       for (final t in timings) {
         buildUs += t.buildDuration.inMicroseconds;
         rasterUs += t.rasterDuration.inMicroseconds;
+        // A frame is late if building or drawing it took over 16.7 ms
+        // (one 60 Hz refresh).
+        final us =
+            t.buildDuration.inMicroseconds > t.rasterDuration.inMicroseconds
+            ? t.buildDuration.inMicroseconds
+            : t.rasterDuration.inMicroseconds;
+        if (us > worstUs) worstUs = us;
+        if (us > 16667) slow++;
       }
     });
 
@@ -93,6 +103,7 @@ class FrameDiagnostics {
         '${DateTime.now().toIso8601String()} frames=$frames '
         'build_ms=${(buildUs / 1000).toStringAsFixed(1)} '
         'raster_ms=${(rasterUs / 1000).toStringAsFixed(1)} '
+        'worst_ms=${(worstUs / 1000).toStringAsFixed(1)} late=$slow '
         'tickers=${s.transientCallbackCount} '
         'phase=${s.schedulerPhase.name}\n',
       );
@@ -109,6 +120,8 @@ class FrameDiagnostics {
       frames = 0;
       buildUs = 0;
       rasterUs = 0;
+      worstUs = 0;
+      slow = 0;
       rebuilt.clear();
       painted.clear();
       errors.clear();
