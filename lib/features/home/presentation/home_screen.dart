@@ -2,95 +2,109 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/config/brand_config.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
-import '../../../core/widgets/brand_logo.dart';
-import '../../../core/widgets/language_menu_button.dart';
+import '../../../core/widgets/motion.dart';
 import '../../admin/presentation/admin_errors.dart';
-import '../../admin/presentation/admin_screen.dart';
 import '../../auth/application/auth_providers.dart';
-import '../../auth/data/auth_repository.dart';
 import '../../auth/domain/my_profile.dart';
-import '../../auth/presentation/security_screen.dart';
+import '../../engagement/presentation/home_side_columns.dart';
+import '../../feed/domain/feed_scope.dart';
+import '../../feed/presentation/feed_view.dart';
+import '../../search/presentation/search_screen.dart';
 
-/// Home after login. The company feed replaces the middle of this screen
-/// in Phase 3.
-class HomeScreen extends ConsumerWidget {
+/// Home after login: the company feed. The rail and the chat panel live in
+/// AppShell.
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   static const String routePath = '/';
   static const String routeName = 'home';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final appName = BrandConfig.localizedAppName(
-      Localizations.localeOf(context),
-    );
     final profile = ref.watch(myProfileProvider);
 
-    // Deactivated (or removed) while signed in: explain, then sign out.
-    ref.listen(myProfileProvider, (previous, next) async {
-      if (next case AsyncData(value: null)) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.accountNotActiveTitle),
-            content: Text(l10n.errorNotActive),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l10n.ok),
-              ),
-            ],
+    final feed = ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 720),
+      child: switch (profile) {
+        AsyncData(value: final p?) => FeedView(
+          me: p,
+          scope: FeedScope.company(isAdmin: p.isAdmin),
+          header: _HomeHeader(profile: p),
+        ),
+        AsyncError() => Center(
+          child: TextButton.icon(
+            onPressed: () => ref.invalidate(myProfileProvider),
+            icon: const Icon(Icons.refresh),
+            label: Text('${l10n.errorNetwork}\n${l10n.retry}'),
           ),
-        );
-        await ref.read(authRepositoryProvider).signOut();
-      }
-    });
+        ),
+        _ => const Center(child: CircularProgressIndicator()),
+      },
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const BrandLogo(),
-            const SizedBox(width: 12),
-            Text(appName),
-          ],
-        ),
-        actions: [
-          const LanguageMenuButton(),
-          IconButton(
-            key: const Key('signOutButton'),
-            tooltip: l10n.signOut,
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
-          child: switch (profile) {
-            AsyncData(value: final p?) => _HomeBody(profile: p),
-            AsyncError() => Center(
-              child: TextButton.icon(
-                onPressed: () => ref.invalidate(myProfileProvider),
-                icon: const Icon(Icons.refresh),
-                label: Text('${l10n.errorNetwork}\n${l10n.retry}'),
+      body: LayoutBuilder(
+        builder: (context, box) {
+          // Wide screens: cards on both sides of the feed; medium: one
+          // column on the end side; narrow: the feed alone.
+          const side = HomeSideColumn.width;
+          const gap = 28.0;
+          final w = box.maxWidth;
+          final both = w >= 720 + 2 * (side + gap) + 48;
+          final one = !both && w >= 720 + side + gap + 32;
+          if (!both && !one) return Center(child: feed);
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (both) ...[
+                const HomeSideColumn(
+                  key: Key('homeStartColumn'),
+                  sections: [
+                    SideSection.events,
+                    SideSection.celebrations,
+                    SideSection.newJoiners,
+                  ],
+                ),
+                const SizedBox(width: gap),
+              ],
+              Flexible(child: feed),
+              const SizedBox(width: gap),
+              HomeSideColumn(
+                key: const Key('homeEndColumn'),
+                sections: both
+                    ? const [
+                        SideSection.kudos,
+                        SideSection.heroes,
+                        SideSection.online,
+                      ]
+                    : const [
+                        SideSection.events,
+                        SideSection.kudos,
+                        SideSection.celebrations,
+                        SideSection.heroes,
+                        SideSection.online,
+                        SideSection.newJoiners,
+                      ],
               ),
-            ),
-            _ => const Center(child: CircularProgressIndicator()),
-          },
-        ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _HomeBody extends StatelessWidget {
-  const _HomeBody({required this.profile});
+/// Greeting + search above the feed.
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader({required this.profile});
 
   final MyProfile profile;
 
@@ -100,83 +114,59 @@ class _HomeBody extends StatelessWidget {
     final theme = Theme.of(context);
     final details = [roleLabel(l10n, profile.role), ?profile.jobTitle];
 
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Text(
-          l10n.homeHello(profile.fullName),
-          style: theme.textTheme.headlineMedium,
-        ),
-        const SizedBox(height: 4),
-        Text(details.join(' · '), style: theme.textTheme.titleSmall),
-        const SizedBox(height: 4),
-        Text(
-          profile.phone,
-          textDirection: TextDirection.ltr,
-          textAlign: Directionality.of(context) == TextDirection.rtl
-              ? TextAlign.right
-              : TextAlign.left,
-        ),
-        const SizedBox(height: 24),
-        if (profile.isAdmin) ...[
-          _ActionCard(
-            key: const Key('openAdminPanel'),
-            icon: Icons.admin_panel_settings,
-            title: l10n.adminPanel,
-            subtitle: l10n.adminPanelSubtitle,
-            onTap: () => context.push(AdminScreen.routePath),
-          ),
-          const SizedBox(height: 12),
-        ],
-        _ActionCard(
-          icon: Icons.security,
-          title: l10n.securityTitle,
-          subtitle: l10n.securitySubtitle,
-          onTap: () => context.push(SecurityScreen.routePath),
-        ),
-        const SizedBox(height: 24),
-        Card(
-          color: theme.colorScheme.surfaceContainerLow,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.construction),
-                const SizedBox(width: 12),
-                Expanded(child: Text(l10n.homeComingSoon)),
-              ],
+    return FadeSlideIn(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 12, 4, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.homeHello(profile.fullName),
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ),
+            const SizedBox(height: 2),
+            Text(
+              details.join(' · '),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Material(
+              color: theme.colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => context.push(SearchScreen.routePath),
+                child: Container(
+                  height: 46,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.search_rounded,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        l10n.searchShort,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    );
-  }
-}
-
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Icon(icon, size: 32),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
       ),
     );
   }

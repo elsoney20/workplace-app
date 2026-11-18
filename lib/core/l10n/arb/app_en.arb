@@ -150,5 +150,555 @@
   "authenticatorManual": "Can't scan? Enter this key instead:",
   "authenticatorStep3": "3. Enter the 6-digit code the app shows:",
   "authenticatorDisableConfirm": "Turn off the authenticator app? Your account will be protected by the SMS code only.",
-  "copied": "Copied"
+  "copied": "Copied",
+  "feedTitle": "Company feed",
+  "composerPrompt": "What's on your mind, {name}?",
+  "@composerPrompt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "newPost": "New post",
+  "editPost": "Edit post",
+  "postAction": "Post",
+  "postHint": "Write something… use @ to mention someone and # for a hashtag",
+  "addPhotoVideo": "Photo / video",
+  "addFile": "File",
+  "addEmoji": "Emoji",
+  "announcementSwitch": "Pin as company announcement",
+  "announcementBadge": "Announcement",
+  "pinnedBadge": "Pinned",
+  "uploadingProgress": "Uploading {done} of {total}…",
+  "@uploadingProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fileTooBig": "\"{name}\" is bigger than 50 MB.",
+  "@fileTooBig": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyPost": "Write something or add a file first.",
+  "feedEmpty": "No posts yet. Be the first to post!",
+  "feedEmptyHashtag": "No posts with #{tag}.",
+  "@feedEmptyHashtag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "showingHashtag": "Posts with #{tag}",
+  "@showingHashtag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "clearFilter": "Show all",
+  "trending": "Trending",
+  "refresh": "Refresh",
+  "loadMore": "Load more",
+  "react": "React",
+  "like": "Like",
+  "comment": "Comment",
+  "commentsTitle": "Comments",
+  "commentCount": "{count, plural, =0{No comments} =1{1 comment} other{{count} comments}}",
+  "@commentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "writeComment": "Write a comment…",
+  "writeReply": "Reply to {name}…",
+  "@writeReply": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reply": "Reply",
+  "send": "Send",
+  "commentsLocked": "Comments are turned off for this post.",
+  "noCommentsYet": "No comments yet.",
+  "edit": "Edit",
+  "delete": "Delete",
+  "deletePostConfirm": "Delete this post?",
+  "deleteCommentConfirm": "Delete this comment?",
+  "pinPost": "Pin as announcement",
+  "unpinPost": "Unpin",
+  "lockComments": "Turn off comments",
+  "unlockComments": "Turn on comments",
+  "seenBy": "Seen by {count}",
+  "@seenBy": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "seenByOf": "Seen by {count} of {total}",
+  "@seenByOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "seenByTitle": "Seen by",
+  "nobodySeenYet": "Nobody has seen it yet.",
+  "reactionsTitle": "Reactions",
+  "allReactions": "All",
+  "moreEmojis": "More emojis",
+  "edited": "edited",
+  "justNow": "just now",
+  "minutesAgo": "{count}m",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count}h",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{count}d",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "openFile": "Open",
+  "cannotOpenFile": "Could not open the file.",
+  "noPeopleFound": "No one found",
+  "emojiSmileys": "Smileys",
+  "emojiGestures": "Hands",
+  "emojiHearts": "Hearts",
+  "emojiCelebration": "Celebrate",
+  "emojiWork": "Work",
+  "emojiPeople": "People",
+  "emojiNature": "Nature",
+  "emojiFlags": "Flags",
+  "menuAccount": "Account",
+  "groupsTitle": "Groups",
+  "myGroups": "My groups",
+  "discoverGroups": "Discover",
+  "searchGroups": "Search groups",
+  "createGroup": "Create group",
+  "editGroup": "Edit group",
+  "groupName": "Group name",
+  "groupDescription": "Description (optional)",
+  "groupPublic": "Public",
+  "groupPublicHint": "Any employee can find and join it.",
+  "groupPrivate": "Private",
+  "groupPrivateHint": "Hidden. Only invited people can see it.",
+  "departmentGroup": "Department",
+  "memberCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "joinGroup": "Join",
+  "leaveGroup": "Leave group",
+  "leaveGroupConfirm": "Leave {name}?",
+  "@leaveGroupConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteGroup": "Delete group",
+  "deleteGroupConfirm": "Delete {name} with all its posts? This cannot be undone.",
+  "@deleteGroupConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "muteGroup": "Mute notifications",
+  "unmuteGroup": "Unmute notifications",
+  "groupFeedTab": "Posts",
+  "groupMembersTab": "Members",
+  "groupAboutTab": "About",
+  "addMembers": "Add people",
+  "roleOwner": "Owner",
+  "roleModerator": "Moderator",
+  "roleMember": "Member",
+  "makeModerator": "Make moderator",
+  "makeOwner": "Make owner",
+  "makeMember": "Make regular member",
+  "removeFromGroup": "Remove from group",
+  "groupsEmpty": "You are not in any group yet.",
+  "noGroupsFound": "No groups found.",
+  "groupNotFound": "This group doesn't exist or you can't see it.",
+  "joinToPost": "Join the group to post here.",
+  "departmentGroupHint": "Members follow each employee's department (set in the admin panel).",
+  "departmentManager": "Department manager",
+  "noManager": "No manager",
+  "errorLastOwner": "A group needs an owner. Make someone else owner first.",
+  "added": "Added",
+  "companyFeed": "Company",
+  "chatsTitle": "Chats",
+  "newChat": "New chat",
+  "newGroupChat": "New group chat",
+  "groupChatTitle": "Group chat name",
+  "choosePeople": "Choose people",
+  "create": "Create",
+  "chatsEmpty": "No chats yet. Start one with the + button.",
+  "typeMessage": "Type a message…",
+  "you": "You",
+  "photo": "Photo",
+  "attachment": "Attachment",
+  "messageDeleted": "This message was deleted",
+  "deleteForEveryone": "Delete for everyone",
+  "deleteMessageConfirm": "Delete this message for everyone?",
+  "copy": "Copy",
+  "messageInfo": "Seen by…",
+  "delivered": "Delivered",
+  "seen": "Seen",
+  "notYet": "Not yet",
+  "online": "Online",
+  "offline": "Offline",
+  "typingOne": "{name} is typing…",
+  "@typingOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "typingMany": "Several people are typing…",
+  "chatInfo": "Chat info",
+  "renameChat": "Rename",
+  "leaveChat": "Leave chat",
+  "leaveChatConfirm": "Leave this group chat?",
+  "muteChat": "Mute",
+  "unmuteChat": "Unmute",
+  "sendMessage": "Send message",
+  "replyingTo": "Replying to {name}",
+  "@replyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "editingMessage": "Editing message",
+  "chatPrivacyNote": "Only the people in this chat can read it.",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "notificationsTitle": "Notifications",
+  "markAllRead": "Mark all as read",
+  "notificationsEmpty": "No notifications yet.",
+  "notifMention": "{name} mentioned you",
+  "@notifMention": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifComment": "{name} commented on your post",
+  "@notifComment": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReply": "{name} replied to your comment",
+  "@notifReply": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReaction": "{name} reacted to your post",
+  "@notifReaction": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAnnouncement": "New announcement from {name}",
+  "@notifAnnouncement": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupInvite": "{name} added you to a group",
+  "@notifGroupInvite": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReportUpdate": "Your report was reviewed",
+  "notifMessage": "New message from {name}",
+  "@notifMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "someone": "Someone",
+  "postTitle": "Post",
+  "postNotFound": "This post was deleted or you can't see it.",
+  "searchTitle": "Search",
+  "searchHint": "Search people, posts and your messages",
+  "searchPeople": "People",
+  "searchPosts": "Posts",
+  "searchMessages": "Messages",
+  "searchTypeMore": "Type at least 2 letters.",
+  "noResults": "No results.",
+  "directoryTitle": "Employee directory",
+  "allDepartments": "All departments",
+  "phoneHidden": "Phone hidden",
+  "callOrCopy": "Copy number",
+  "myProfile": "My profile",
+  "bioLabel": "About me",
+  "phoneVisibilityLabel": "Who can see my phone number",
+  "visibilityEveryone": "Everyone",
+  "visibilityManagers": "Managers and admins only",
+  "visibilityNobody": "Nobody",
+  "changePhoto": "Change photo",
+  "removePhoto": "Remove photo",
+  "reportAction": "Report",
+  "reportTitle": "Report this content",
+  "reportReasonHint": "Why? (only admins / moderators will see this)",
+  "reportSent": "Thanks. A moderator will review it.",
+  "reportsTitle": "Reports",
+  "reportsSubtitle": "Review content people reported.",
+  "reportsEmpty": "No open reports.",
+  "reportOpen": "Open",
+  "reportResolved": "Resolved",
+  "reportDismissed": "Dismissed",
+  "reportedBy": "Reported by {name}",
+  "@reportedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAndResolve": "Delete content",
+  "dismissReport": "Keep (dismiss)",
+  "openPost": "Open post",
+  "contentDeleted": "Content deleted",
+  "profileTitle": "Profile",
+  "homeTitle": "Home",
+  "goodMorning": "Good morning, {name}",
+  "@goodMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "goodEvening": "Good evening, {name}",
+  "@goodEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "searchShort": "Search colleagues, posts or messages",
+  "seeAll": "See all",
+  "closeChat": "Close chat",
+  "pickAChat": "Pick a chat to open it here.",
+  "demoContentTitle": "Demo content",
+  "demoContentBody": "Adds 6 demo colleagues, posts with photos and a video, comments, reactions, a group and chats, so you can try the app. You can remove it any time.",
+  "demoLoad": "Load demo content",
+  "demoRemove": "Remove demo content",
+  "demoLoaded": "Demo content is ready. Open the home page.",
+  "demoRemoved": "Demo content removed. Your own demo posts stay; delete them from the feed if you like.",
+  "demoPost1": "Black Friday offers start Thursday at midnight in every branch 🔥 All teams please check the shifts in the operations group. #black_friday #offers",
+  "demoPost2": "Registration is open for the G2E Cup 🏆 the branches FIFA tournament. Send your team name in the comments! #g2e_cup",
+  "demoPost3": "New arrivals landed in all branches 🎮 watch the video 👇 #new_arrivals",
+  "commentsNewest": "Newest first",
+  "commentsOldest": "Oldest first",
+  "hideComments": "Hide comments",
+  "playVideo": "Play video",
+  "fullScreen": "Full screen",
+  "exitFullScreen": "Exit full screen",
+  "demoPhotoCredits": "Photo credits",
+  "demoPhotoCreditsBody": "Demo photos are from Wikimedia Commons under free licenses (CC BY, CC BY-SA, public domain).",
+  "close": "Close",
+  "sharePost": "Share",
+  "sharePostTitle": "Share post",
+  "shareNoteHint": "Add a message (optional)",
+  "copyPostText": "Copy post text",
+  "postCopied": "Post text copied",
+  "sendToChat": "Send it in a chat",
+  "sent": "Sent",
+  "openChat": "Open chat",
+  "sharedPost": "Shared post",
+  "codeChecking": "Checking the code…",
+  "codeVerified": "Code is correct",
+  "pollVotes": "{count, plural, =0{No votes yet} =1{1 vote} other{{count} votes}}",
+  "@pollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollClosed": "Poll closed",
+  "pollTapToVote": "Tap a choice to vote",
+  "addPoll": "Poll",
+  "removePoll": "Remove poll",
+  "pollQuestion": "Question",
+  "pollChoice": "Choice {n}",
+  "@pollChoice": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "pollAddChoice": "Add a choice",
+  "pollNeedsChoices": "Write the question and at least 2 choices.",
+  "sideEvents": "Upcoming events",
+  "sideNoEvents": "No events yet.",
+  "newEvent": "New event",
+  "eventGoing": "Going",
+  "eventJoin": "I'm going",
+  "eventGoingCount": "{count} going",
+  "@eventGoingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventTitle": "Title",
+  "eventLocation": "Where",
+  "eventDescription": "Details",
+  "eventDuration": "Duration",
+  "hoursCount": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@hoursCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventNeedsTitle": "Give the event a title.",
+  "eventKindEvent": "Event",
+  "eventKindTournament": "Tournament",
+  "eventKindCelebration": "Celebration",
+  "eventKindTraining": "Training",
+  "eventKindMeeting": "Meeting",
+  "sideCelebrations": "Birthdays & anniversaries",
+  "sideNoCelebrations": "Nothing this week.",
+  "birthdayToday": "Birthday today!",
+  "birthdayTomorrow": "Birthday tomorrow",
+  "birthdayIn": "Birthday in {count} days",
+  "@birthdayIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "anniversaryYears": "{count, plural, =1{1 year with us} other{{count} years with us}}",
+  "@anniversaryYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sayCongrats": "Say congrats",
+  "addMyBirthday": "Add my birthday",
+  "birthdaySaved": "Saved. Only the day and month are shown.",
+  "sideNewJoiners": "New colleagues",
+  "sayWelcome": "Welcome",
+  "sideKudos": "Kudos",
+  "sendKudos": "Thank a colleague",
+  "sideNoKudos": "Be the first to thank someone.",
+  "kudosFrom": "from {name}",
+  "@kudosFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "kudosWho": "Who do you want to thank?",
+  "kudosForWhat": "For what?",
+  "kudosMessageHint": "A few words (optional)",
+  "kudosPickSomeone": "Pick a colleague first.",
+  "kudosTooMany": "That's enough thanks for today 😄 Try tomorrow.",
+  "badgeThanks": "Thanks",
+  "badgeTeamwork": "Teamwork",
+  "badgeHelpful": "Helpful",
+  "badgeMvp": "MVP",
+  "badgeCreative": "Creative",
+  "badgeSpeed": "Lightning fast",
+  "sideHeroes": "Heroes of the week",
+  "sideNoHeroes": "Thank a colleague and they show up here.",
+  "heroKudosCount": "{count} 🙌",
+  "@heroKudosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sideOnline": "Online now ({count})",
+  "@sideOnline": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sideNoOnline": "Nobody else is online right now.",
+  "notifKudos": "{name} thanked you 🙌",
+  "@notifKudos": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

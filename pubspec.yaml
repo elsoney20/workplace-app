@@ -20,6 +20,13 @@ dependencies:
   material_ui: ^1.11.1
   cupertino_ui: ^1.1.7
   qr_flutter: ^4.1.0
+  file_picker: ^13.4.0
+  image: ^4.13.1
+  url_launcher: ^6.3.3
+  mime: ^2.1.0
+  local_notifier: ^0.1.6
+  video_player: ^2.14.1
+  video_player_win: ^3.3.1
 
 dev_dependencies:
   flutter_test:
@@ -32,3 +39,25 @@ flutter:
   # Brand assets (logo, etc.) live here. See lib/core/config/brand_config.dart.
   assets:
     - assets/brand/
+    # Demo photos + video for the "Demo content" button in the admin panel.
+    - assets/demo/
+
+  # Games2Egypt brand fonts (SIL Open Font License, see assets/fonts/OFL-*.txt).
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
+          weight: 800
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700

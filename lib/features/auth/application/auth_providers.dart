@@ -29,3 +29,14 @@ final myProfileProvider = FutureProvider<MyProfile?>((ref) async {
   if (status != AuthStatus.signedIn) return null;
   return ref.watch(authRepositoryProvider).fetchMyProfile();
 });
+
+/// True for a moment after a correct login code, so the login screen can
+/// finish its check-mark animation before the app moves on.
+class LoginHold extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}
+
+final loginHoldProvider = NotifierProvider<LoginHold, bool>(LoginHold.new);

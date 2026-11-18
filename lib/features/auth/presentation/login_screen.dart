@@ -6,7 +6,9 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/l10n/generated/app_localizations.dart';
 import '../data/auth_repository.dart';
 import '../domain/phone_number.dart';
+import '../application/auth_providers.dart';
 import 'auth_layout.dart';
+import 'otp_code_input.dart';
 
 /// Step 1: phone number. Step 2: the 6-digit SMS code.
 class LoginScreen extends ConsumerStatefulWidget {
@@ -29,8 +31,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _phoneE164;
   bool _busy = false;
   String? _error;
+  OtpStatus _codeStatus = OtpStatus.idle;
   int _resendLeft = 0;
   Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _codeController.addListener(() {
+      final text = _codeController.text;
+      // Typing again after a wrong code clears the red state.
+      if (_codeStatus == OtpStatus.error && text.length < OtpCodeInput.length) {
+        setState(() => _codeStatus = OtpStatus.idle);
+      }
+      // The message stays until the first new digit is typed.
+      if (_codeStatus == OtpStatus.idle && _error != null && text.isNotEmpty) {
+        setState(() => _error = null);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -78,20 +97,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final l10n = AppLocalizations.of(context);
     final code = cleanCode(_codeController.text);
     if (code.length != 6) {
-      setState(() => _error = l10n.codeInvalid);
+      setState(() {
+        _error = l10n.codeInvalid;
+        _codeStatus = OtpStatus.error;
+      });
       return;
     }
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
+      _codeStatus = OtpStatus.checking;
     });
+    final hold = ref.read(loginHoldProvider.notifier);
+    // Keep this screen up until the check mark has been drawn.
+    hold.set(true);
     try {
-      // On success the router moves on automatically.
-      await ref.read(authRepositoryProvider).verifyCode(_phoneE164!, code);
+      await Future.wait([
+        ref.read(authRepositoryProvider).verifyCode(_phoneE164!, code),
+        // Let the tiles finish merging before showing the result.
+        Future<void>.delayed(const Duration(milliseconds: 650)),
+      ]);
+      if (mounted) {
+        setState(() => _codeStatus = OtpStatus.success);
+        // Let the puzzle solve itself and turn green before moving on.
+        await Future<void>.delayed(OtpCodeInput.successDuration);
+      }
     } on Object catch (error) {
       if (!mounted) return;
-      setState(() => _error = authFailureMessage(l10n, error));
+      setState(() {
+        _error = authFailureMessage(l10n, error);
+        _codeStatus = OtpStatus.error;
+      });
+      // Like the video: the red code shakes, then empties for a new try.
+      Future<void>.delayed(const Duration(milliseconds: 900), () {
+        if (mounted && _codeStatus == OtpStatus.error) {
+          setState(() => _codeStatus = OtpStatus.idle);
+          _codeController.clear();
+        }
+      });
     } finally {
+      // The router moves on by itself once the hold is released.
+      hold.set(false);
       if (mounted) setState(() => _busy = false);
     }
   }
@@ -102,6 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _phoneE164 = null;
       _codeController.clear();
       _error = null;
+      _codeStatus = OtpStatus.idle;
       _resendLeft = 0;
     });
   }
@@ -145,10 +193,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       title: l10n.codeTitle,
       subtitle: l10n.codeSentTo('\u2066$phone\u2069'),
       children: [
-        CodeField(
+        OtpCodeInput(
           controller: _codeController,
-          label: l10n.codeLabel,
-          onSubmitted: () => _busy ? null : _verify(),
+          status: _codeStatus,
+          onCompleted: _verify,
         ),
         AuthErrorText(_error),
         const SizedBox(height: 20),
@@ -165,11 +213,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               onPressed: _busy ? null : _changeNumber,
               child: Text(l10n.changeNumber),
             ),
-            TextButton(
-              onPressed: _busy || _resendLeft > 0 ? null : _sendCode,
-              child: Text(
-                _resendLeft > 0 ? l10n.resendIn(_resendLeft) : l10n.resendCode,
-              ),
+            ResendCountdown(
+              secondsLeft: _resendLeft,
+              total: _resendSeconds,
+              onResend: _busy ? null : _sendCode,
             ),
           ],
         ),

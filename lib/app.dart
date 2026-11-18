@@ -25,7 +25,7 @@ class WorkplaceApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark, // Games2Egypt is a dark brand.
       // null = follow the OS language; Flutter falls back to English
       // if the OS language is not supported.
       locale: locale,

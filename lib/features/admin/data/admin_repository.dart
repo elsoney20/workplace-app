@@ -36,7 +36,7 @@ class AdminRepository {
   Future<List<Department>> listDepartments() async {
     final rows = await _client
         .from('departments')
-        .select('id, name_ar, name_en')
+        .select('id, name_ar, name_en, manager_id')
         .order('name_en');
     return rows.map(Department.fromJson).toList();
   }
@@ -44,10 +44,12 @@ class AdminRepository {
   Future<void> addDepartment({
     required String nameAr,
     required String nameEn,
+    String? managerId,
   }) async {
     await _client.from('departments').insert({
       'name_ar': nameAr,
       'name_en': nameEn,
+      'manager_id': managerId,
     });
   }
 
@@ -55,10 +57,11 @@ class AdminRepository {
     String id, {
     required String nameAr,
     required String nameEn,
+    String? managerId,
   }) async {
     await _client
         .from('departments')
-        .update({'name_ar': nameAr, 'name_en': nameEn})
+        .update({'name_ar': nameAr, 'name_en': nameEn, 'manager_id': managerId})
         .eq('id', id);
   }
 }
