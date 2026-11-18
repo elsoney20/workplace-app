@@ -1,7 +1,8 @@
-import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -10,9 +11,8 @@ import 'motion.dart';
 /// A slow, drifting pattern of gaming things (controllers, headsets,
 /// consoles, trophies...) for the background of big screens.
 ///
-/// Cheap by design: the icons are drawn once into a seamless tile that is
-/// cached as a texture; every frame only *moves* that texture (no
-/// redrawing). It moves while someone is using the app, rests after
+/// Cheap by design: the icons are drawn once into a seamless tile image;
+/// every frame only repeats that image with a slightly moved offset. It moves while someone is using the app, rests after
 /// [idleAfter] without mouse / keyboard activity (so an untouched app uses
 /// no CPU), and stops while the window is in the background.
 class GamingPattern extends StatefulWidget {
@@ -29,12 +29,11 @@ class GamingPattern extends StatefulWidget {
 }
 
 class _GamingPatternState extends State<GamingPattern>
-    with WidgetsBindingObserver {
-  /// A plain timer (not a ticker): a ticker asks for a new frame on every
-  /// screen refresh (240 a second on a 240 Hz screen) even when the
-  /// pattern has not moved; this only asks ~24 times a second.
-  Timer? _timer;
-  final Stopwatch _watch = Stopwatch();
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  /// Driven by the screen refresh (a ticker), so every refresh moves the
+  /// pattern by the same tiny, sub-pixel step: that is what makes it
+  /// glide instead of hop. Each frame only draws one textured rectangle.
+  late final Ticker _ticker = createTicker(_tick);
   final ValueNotifier<Offset> _shift = ValueNotifier(Offset.zero);
   Duration _last = Duration.zero;
 
@@ -42,6 +41,10 @@ class _GamingPatternState extends State<GamingPattern>
   double _clock = 0;
   DateTime _lastInput = DateTime.now();
   bool _foreground = true;
+
+  ui.Image? _tileImage;
+  double _tileDpr = 0;
+  bool _tileDark = false;
 
   @override
   void initState() {
@@ -59,41 +62,52 @@ class _GamingPatternState extends State<GamingPattern>
     return false;
   }
 
-  bool get _running => _timer?.isActive ?? false;
-
   void _wake() {
     _lastInput = DateTime.now();
-    if (FadeSlideIn.enabled && _foreground && !_running) {
+    if (FadeSlideIn.enabled && _foreground && !_ticker.isActive) {
       _last = Duration.zero;
-      _watch
-        ..reset()
-        ..start();
-      _timer = Timer.periodic(const Duration(milliseconds: 42), (_) => _tick());
+      _ticker.start();
     }
   }
 
   void _stop() {
-    _timer?.cancel();
-    _timer = null;
-    _watch.stop();
+    if (_ticker.isActive) _ticker.stop();
   }
 
-  void _tick() {
+  void _tick(Duration elapsed) {
     if (DateTime.now().difference(_lastInput) > GamingPattern.idleAfter) {
       _stop();
       return;
     }
-    final elapsed = _watch.elapsed;
     final step = elapsed - _last;
     _last = elapsed;
     _clock += step.inMicroseconds / 1e6;
     final t = _clock;
     const tile = GamingPattern.tile;
-    // Pixel-snapped so the cached texture never needs re-filtering.
-    _shift.value = Offset(
-      ((t * 9) % tile).roundToDouble(),
-      ((t * 6) % tile).roundToDouble(),
-    );
+    // Not rounded: the texture is sampled smoothly between pixels.
+    _shift.value = Offset((t * 9) % tile, (t * 6) % tile);
+  }
+
+  /// Draws one seamless tile into a picture once (per theme and screen
+  /// density); every frame then just repeats it with a moving offset.
+  ui.Image _tileFor(double dpr, bool dark) {
+    final cached = _tileImage;
+    if (cached != null && _tileDpr == dpr && _tileDark == dark) return cached;
+    cached?.dispose();
+    const tile = GamingPattern.tile;
+    final px = (tile * dpr).round();
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder)
+      ..scale(px / tile)
+      ..clipRect(const Rect.fromLTWH(0, 0, tile, tile));
+    _PatternPainter(dark: dark).paintTile(canvas);
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(px, px);
+    picture.dispose();
+    _tileImage = image;
+    _tileDpr = dpr;
+    _tileDark = dark;
+    return image;
   }
 
   @override
@@ -111,54 +125,64 @@ class _GamingPatternState extends State<GamingPattern>
     WidgetsBinding.instance.removeObserver(this);
     GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);
     HardwareKeyboard.instance.removeHandler(_onKey);
-    _stop();
+    _ticker.dispose();
     _shift.dispose();
+    _tileImage?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    const tile = GamingPattern.tile;
-    return ClipRect(
-      child: LayoutBuilder(
-        builder: (context, box) {
-          final w = box.maxWidth + tile;
-          final h = box.maxHeight + tile;
-          final pattern = RepaintBoundary(
-            child: CustomPaint(
-              size: Size(w, h),
-              painter: _PatternPainter(dark: dark),
-              isComplex: true,
-              willChange: false,
-            ),
-          );
-          return Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              Positioned(
-                left: -tile,
-                top: -tile,
-                width: w,
-                height: h,
-                child: ValueListenableBuilder<Offset>(
-                  valueListenable: _shift,
-                  child: pattern,
-                  builder: (context, shift, child) =>
-                      Transform.translate(offset: shift, child: child),
-                ),
-              ),
-            ],
-          );
-        },
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final image = _tileFor(dpr, dark);
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size.infinite,
+        painter: _DriftPainter(image: image, dpr: dpr, shift: _shift),
       ),
     );
   }
 }
 
+/// Fills the area with the repeated tile, shifted by [shift]; bilinear
+/// sampling makes sub-pixel offsets look smooth.
+class _DriftPainter extends CustomPainter {
+  _DriftPainter({required this.image, required this.dpr, required this.shift})
+    : super(repaint: shift);
+
+  final ui.Image image;
+  final double dpr;
+  final ValueNotifier<Offset> shift;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = shift.value;
+    final scale = GamingPattern.tile / image.width;
+    final matrix = Matrix4.identity()
+      ..translateByDouble(s.dx, s.dy, 0, 1)
+      ..scaleByDouble(scale, scale, 1, 1);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..filterQuality = FilterQuality.low
+        ..shader = ImageShader(
+          image,
+          TileMode.repeated,
+          TileMode.repeated,
+          matrix.storage,
+          filterQuality: FilterQuality.low,
+        ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_DriftPainter old) => old.image != image || old.dpr != dpr;
+}
+
 /// Draws the icons once. The layout repeats every [cells] cells, so the
 /// picture can slide by one tile and look identical (seamless loop).
-class _PatternPainter extends CustomPainter {
+class _PatternPainter {
   _PatternPainter({required this.dark});
 
   final bool dark;
@@ -202,13 +226,12 @@ class _PatternPainter extends CustomPainter {
     )..layout();
   }
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  /// Paints one tile (cells x cells), including the parts of icons from
+  /// neighbouring tiles that reach into it, so the edges line up.
+  void paintTile(Canvas canvas) {
     final cache = <(int, int), TextPainter>{};
-    final rows = (size.height / cell).ceil() + 1;
-    final cols = (size.width / cell).ceil() + 1;
-    for (var r = 0; r < rows; r++) {
-      for (var c = 0; c < cols; c++) {
+    for (var r = -1; r <= cells; r++) {
+      for (var c = -1; c <= cells; c++) {
         // Same values every `cells` rows / columns -> seamless tile.
         final rnd = math.Random(
           ((r % cells) * 73856093) ^ ((c % cells) * 19349663),
@@ -233,7 +256,4 @@ class _PatternPainter extends CustomPainter {
       g.dispose();
     }
   }
-
-  @override
-  bool shouldRepaint(_PatternPainter old) => old.dark != dark;
 }

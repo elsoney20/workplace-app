@@ -7,6 +7,7 @@ import 'package:workplace_app/core/l10n/locale_controller.dart';
 import 'package:workplace_app/features/auth/application/auth_providers.dart';
 import 'package:workplace_app/features/auth/data/auth_repository.dart';
 import 'package:workplace_app/features/auth/domain/auth_status.dart';
+import 'package:workplace_app/features/auth/presentation/otp_code_input.dart';
 
 class _SignedOut extends AuthStatusController {
   @override
@@ -69,6 +70,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('codeField')), '123456');
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.text('Code is correct'), findsOneWidget);
+    await tester.pump(OtpCodeInput.successDuration);
     await tester.pumpAndSettle();
     expect(auth.tried, ['111111', '123456']);
   });

@@ -38,14 +38,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Typing again after a wrong code clears the red state.
     _codeController.addListener(() {
-      if (_codeStatus == OtpStatus.error &&
-          _codeController.text.length < OtpCodeInput.length) {
-        setState(() {
-          _codeStatus = OtpStatus.idle;
-          _error = null;
-        });
+      final text = _codeController.text;
+      // Typing again after a wrong code clears the red state.
+      if (_codeStatus == OtpStatus.error && text.length < OtpCodeInput.length) {
+        setState(() => _codeStatus = OtpStatus.idle);
+      }
+      // The message stays until the first new digit is typed.
+      if (_codeStatus == OtpStatus.idle && _error != null && text.isNotEmpty) {
+        setState(() => _error = null);
       }
     });
   }
@@ -119,13 +120,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ]);
       if (mounted) {
         setState(() => _codeStatus = OtpStatus.success);
-        await Future<void>.delayed(const Duration(milliseconds: 900));
+        // Let the puzzle solve itself and turn green before moving on.
+        await Future<void>.delayed(OtpCodeInput.successDuration);
       }
     } on Object catch (error) {
       if (!mounted) return;
       setState(() {
         _error = authFailureMessage(l10n, error);
         _codeStatus = OtpStatus.error;
+      });
+      // Like the video: the red code shakes, then empties for a new try.
+      Future<void>.delayed(const Duration(milliseconds: 900), () {
+        if (mounted && _codeStatus == OtpStatus.error) {
+          setState(() => _codeStatus = OtpStatus.idle);
+          _codeController.clear();
+        }
       });
     } finally {
       // The router moves on by itself once the hold is released.
