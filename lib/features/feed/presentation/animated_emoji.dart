@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 
 /// Shows an emoji, animated when Google's free Noto Animated Emoji has an
@@ -39,6 +41,31 @@ class AnimatedEmoji extends StatefulWidget {
 
 class _AnimatedEmojiState extends State<AnimatedEmoji> {
   bool _hover = false;
+  Timer? _rest;
+
+  /// With [AnimatedEmoji.onHover] the animation plays for a moment and then
+  /// rests, even if the mouse stays on it (a mouse left resting on an emoji
+  /// used to keep the whole window redrawing).
+  static const Duration playFor = Duration(milliseconds: 3200);
+
+  void _enter() {
+    _rest?.cancel();
+    _rest = Timer(playFor, () {
+      if (mounted) setState(() => _hover = false);
+    });
+    setState(() => _hover = true);
+  }
+
+  void _exit() {
+    _rest?.cancel();
+    if (_hover) setState(() => _hover = false);
+  }
+
+  @override
+  void dispose() {
+    _rest?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,39 +78,38 @@ class _AnimatedEmojiState extends State<AnimatedEmoji> {
     );
     final playing =
         AnimatedEmoji.enabled && widget.animate && (!widget.onHover || _hover);
+    final Widget content;
     if (!playing) {
-      final box = SizedBox.square(
+      content = SizedBox.square(
         dimension: size,
         child: Center(child: still),
       );
-      if (!widget.onHover || !AnimatedEmoji.enabled) return box;
-      return MouseRegion(
-        onEnter: (_) => setState(() => _hover = true),
-        child: box,
+    } else {
+      final pixels = (size * MediaQuery.devicePixelRatioOf(context)).round();
+      // Its own layer, so each animation frame redraws only this emoji.
+      content = RepaintBoundary(
+        child: SizedBox.square(
+          dimension: size,
+          child: Image.network(
+            AnimatedEmoji.urlFor(emoji),
+            width: size,
+            height: size,
+            cacheWidth: pixels,
+            filterQuality: FilterQuality.medium,
+            gaplessPlayback: true,
+            semanticLabel: emoji,
+            frameBuilder: (context, child, frame, wasSync) =>
+                frame == null ? Center(child: still) : child,
+            errorBuilder: (context, error, stack) => Center(child: still),
+          ),
+        ),
       );
     }
-    final pixels = (size * MediaQuery.devicePixelRatioOf(context)).round();
-    final image = SizedBox.square(
-      dimension: size,
-      child: Image.network(
-        AnimatedEmoji.urlFor(emoji),
-        width: size,
-        height: size,
-        cacheWidth: pixels,
-        filterQuality: FilterQuality.medium,
-        gaplessPlayback: true,
-        semanticLabel: emoji,
-        frameBuilder: (context, child, frame, wasSync) =>
-            frame == null ? Center(child: still) : child,
-        errorBuilder: (context, error, stack) => Center(child: still),
-      ),
-    );
-    // Its own layer, so each animation frame redraws only this emoji.
-    final layer = RepaintBoundary(child: image);
-    if (!widget.onHover) return layer;
+    if (!widget.onHover || !AnimatedEmoji.enabled) return content;
     return MouseRegion(
-      onExit: (_) => setState(() => _hover = false),
-      child: layer,
+      onEnter: (_) => _enter(),
+      onExit: (_) => _exit(),
+      child: content,
     );
   }
 }
