@@ -167,8 +167,7 @@ class _SignedImage extends ConsumerWidget {
           builder: (_) =>
               _ImageViewer(images: all, initial: index, bucket: bucket),
         ),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
+        child: _PlayOnHover(
           child: Image.network(
             link,
             fit: BoxFit.cover,
@@ -188,6 +187,35 @@ class _SignedImage extends ConsumerWidget {
         children: [placeholder, const Icon(Icons.broken_image_outlined)],
       ),
     };
+  }
+}
+
+/// Animated pictures (GIFs) only move while the mouse is over them. An
+/// animated GIF that plays all the time makes the whole window redraw
+/// non-stop, which used a lot of CPU and crashed the graphics driver on a
+/// 4K screen. Still photos are not affected.
+class _PlayOnHover extends StatefulWidget {
+  const _PlayOnHover({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_PlayOnHover> createState() => _PlayOnHoverState();
+}
+
+class _PlayOnHoverState extends State<_PlayOnHover> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: RepaintBoundary(
+        child: TickerMode(enabled: _hover, child: widget.child),
+      ),
+    );
   }
 }
 

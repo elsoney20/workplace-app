@@ -172,9 +172,14 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
       unawaited(_load(fullScreen: true));
       return;
     }
-    _fullScreenOpen = true;
+    // Only one picture of the video on screen at a time: showing the same
+    // video texture twice (in the post and full screen) crashed the
+    // graphics driver.
+    setState(() => _fullScreenOpen = true);
     _rest?.cancel();
     _rest = null;
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
     await showGeneralDialog<void>(
       context: context,
       barrierColor: Colors.black,
@@ -191,7 +196,8 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
         ),
       ),
     );
-    _fullScreenOpen = false;
+    if (!mounted) return;
+    setState(() => _fullScreenOpen = false);
     _onTick();
   }
 
@@ -215,7 +221,9 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (c != null)
+              if (c != null && _fullScreenOpen)
+                const SizedBox.shrink()
+              else if (c != null)
                 Center(
                   child: AspectRatio(
                     aspectRatio: c.value.aspectRatio,
@@ -242,7 +250,7 @@ class _InlineVideoState extends ConsumerState<InlineVideo> {
                   ),
                 ),
               ],
-              if (c != null)
+              if (c != null && !_fullScreenOpen)
                 _Controls(
                   controller: c,
                   onToggle: _toggle,
